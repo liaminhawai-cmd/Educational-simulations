@@ -34,8 +34,19 @@ svg{display:block;width:100%;height:auto}
 .sbtn{cursor:pointer;font-family:ui-sans-serif,system-ui,sans-serif;border:1px solid var(--line);background:#fff;border-radius:16px;padding:6px 11px;font-size:12.5px}
 .sbtn.on{background:#fbf1e4;border-color:var(--amber);font-weight:600}.sbtn.locked{opacity:.45;cursor:not-allowed}
 .advdis{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;margin-top:4px}.advdis .a{color:var(--ok)}.advdis .d{color:var(--no)}
-.app{border:1px solid var(--line);border-radius:7px;padding:11px 13px;margin-bottom:9px}
-.app h3{font-family:ui-sans-serif,system-ui,sans-serif;font-size:14.5px;margin:0 0 3px}.app p{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;color:var(--muted);margin:0 0 8px}
+@keyframes stampDown{
+  0%{transform:rotate(-22deg) scale(3.2);opacity:0}
+  55%{transform:rotate(5deg) scale(0.92);opacity:1}
+  75%{transform:rotate(-2deg) scale(1.05);opacity:1}
+  100%{transform:rotate(-5deg) scale(1);opacity:0.9}
+}
+.app-card{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.app-title{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:700;margin:0 0 5px}
+.app-brief{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;color:var(--muted);margin:0 0 10px}
+.app-bonus{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--ok);font-weight:600;margin-bottom:10px}
+.stamp-mark{position:absolute;top:14px;right:14px;transform-origin:top right;pointer-events:none;font-family:ui-sans-serif,system-ui,sans-serif;font-size:19px;font-weight:900;letter-spacing:.13em;padding:4px 13px;border-radius:3px;border:3px solid;animation:stampDown .4s cubic-bezier(.2,.6,.3,1) forwards}
+.stamp-mark.approved{color:var(--ok);border-color:var(--ok);background:rgba(58,138,78,.07)}
+.stamp-mark.rejected{color:var(--no);border-color:var(--no);background:rgba(177,73,47,.07)}
 .toggle{display:inline-flex;border:1px solid var(--line);border-radius:18px;overflow:hidden}
 .toggle button{cursor:pointer;border:none;background:#fff;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;padding:6px 16px;color:var(--muted)}
 .toggle button.approve.on{background:var(--okb);color:var(--ok);font-weight:600}.toggle button.reject.on{background:var(--nob);color:var(--no);font-weight:600}.toggle button.locked{opacity:.5;cursor:not-allowed}
@@ -102,16 +113,24 @@ function energyOf(st,i,emult){
   return e;
 }
 
+/* ===== app helpers ===== */
+function appDec(st,id){return st.apps[id];}
+function appLvl(st,id){return st.apps[id]==="approve"?1:0;}
+
 /* ===== pure sim ===== */
 function clamp(v,a,b){return v<a?a:v>b?b:v;}
 function initState(){
   return {seg:D.SEG.map(s=>({...s,energyBase:s.energy,sand:s.sand,dune:s.dune,retreat:0,lost:false})),
           g:geom(), meas:D.SEG.map(()=> "none"),
-          apps:{trawl:null,marina:null,oyster:null}, stake:null,
-          fish:1.0, spend:0, year:0};
+          apps:{clifftop:null,beachfront:null,township:null}, stake:null,
+          spend:0, year:0};
 }
-function applyApprovals(st){ if(st.apps.housing==="approve" && st.seg[4].asset===null) st.seg[4].asset="houses"; }
-function appLvl(st,id){return ({approve:1})[st.apps[id]]||0;}   // approve = 1, anything else = 0
+function applyApprovals(st){
+  // clifftop estate: new houses on The Shoulder above the eroding cliff
+  if(appDec(st,'clifftop')==='approve') st.seg[1].asset='houses';
+  // beachfront park: development damages the dune vegetation at Dune Reserve
+  if(appDec(st,'beachfront')==='approve') st.seg[6].dune=Math.max(0,st.seg[6].dune-0.30);
+}
 function stepYear(st, stormR){
   const N=st.seg.length, s=st.seg, m=st.meas, P=s.map(x=>[x.bx,x.by]);
   const storm=stormR<C.STORM_P, emult=storm?C.STORM_MULT:1;
@@ -125,7 +144,6 @@ function stepYear(st, stormR){
     let Q=C.KFLUX*Eb*along;
     if(Q>0 && m[i]==="groyne") Q*=0.2;            // traps updrift, starves downdrift
     if(Q<0 && m[i+1]==="groyne") Q*=0.2;
-    if(i===7) Q*=(1-0.5*appLvl(st,'marina'));     // dredged channel cuts drift past the township
     if(Q>0){const amt=Math.min(Q, s[i].sand*C.MOVEFRAC); move[i]-=amt; move[i+1]+=amt;}
     else   {const amt=Math.min(-Q, s[i+1].sand*C.MOVEFRAC); move[i+1]-=amt; move[i]+=amt;}
   }
@@ -137,7 +155,6 @@ function stepYear(st, stormR){
     s[i].sand+=move[i];
     if(m[i]==="nourish") s[i].sand+=C.NOURISH-C.NOURISH*C.NOURISH_WEAR;
     if(storm && !s[i].cliff && E[i]>0.4) s[i].sand-=C.STORM_LOSS;
-    if(i===7) s[i].sand-=0.05*emult*appLvl(st,'marina');          // dredging sink
     if(m[i]==="seawall") s[i].sand=Math.min(s[i].sand,0.05);    // reflected energy scours the beach
     const cap=s[i].kind==="spit"?1.25:1.0;
     s[i].sand=clamp(s[i].sand,0,cap);
@@ -150,8 +167,6 @@ function stepYear(st, stormR){
     s[i].retreat+=add;
     if(s[i].asset && !s[i].lost && m[i]!=="retreat" && s[i].retreat>=C.ASSET_LIMIT) s[i].lost=true;
   }}
-  const tl=appLvl(st,'trawl');
-  st.fish = clamp(st.fish + (tl>0? -C.FISH_TRAWL*tl : C.FISH_RECOVER), 0, 1);
   st.year++;
 }
 function run(st,years,rng){ for(let y=0;y<years;y++) stepYear(st,rng()); }
@@ -159,16 +174,15 @@ function outcome(st){
   const s=st.seg;
   const beach=BEACH_SEGS.reduce((a,i)=>a+s[i].sand,0)/BEACH_SEGS.length;
   const dunes=(s[5].dune+s[6].dune)/2, assetsLost=s.filter(x=>x.lost).length;
-  const estuary=clamp((s[8].sand/0.34)*0.55+(s[9].sand/0.62)*0.45-appLvl(st,'marina')*0.30-appLvl(st,'trawl')*0.15,0,1);
+  const estuary=clamp((s[8].sand/0.34)*0.55+(s[9].sand/0.62)*0.45,0,1);
   const walled=st.meas.filter(x=>x==="seawall"||x==="groyne").length;
-  const approved=Object.values(st.apps).filter(v=>v==="approve").length;
-  return {beach,dunes,assetsLost,estuary,fish:st.fish,walled,approved,startBeach:START_BEACH};
+  return {beach,dunes,assetsLost,estuary,walled,startBeach:START_BEACH};
 }
-function voiceStates(st,o){const mar=appLvl(st,'marina'), tr=appLvl(st,'trawl');return{
-  owners:(mar===0&&o.estuary>=0.28)?"good":(o.estuary<0.15||(mar>0&&o.estuary<0.50))?"bad":"mixed",
-  eco:(o.dunes>=0.45&&o.estuary>=0.28&&o.fish>=0.55&&tr===0)?"good":(o.dunes<0.25||o.estuary<0.15||o.fish<0.40)?"bad":"mixed",
+function voiceStates(st,o){return{
+  owners:(o.estuary>=0.28)?"good":(o.estuary<0.15)?"bad":"mixed",
+  eco:(o.dunes>=0.45&&o.estuary>=0.28)?"good":(o.dunes<0.25||o.estuary<0.15)?"bad":"mixed",
   town:(o.beach>=0.8*o.startBeach&&o.assetsLost===0&&o.walled<=2)?"good":(o.beach<0.5*o.startBeach||o.assetsLost>0)?"bad":"mixed",
-  fish:(o.fish>=0.55&&o.approved>=1)?"good":(o.fish<0.40||o.approved===0)?"bad":"mixed"};}
+};}
 function engineerText(st,o){
   const s=st.seg, b=[];
   const dB=o.beach-o.startBeach;
@@ -180,11 +194,10 @@ function engineerText(st,o){
     b.push("Starved of sand by the structures updrift, Far Beach has worn away.");
   if(st.meas.includes("nourish")) b.push("The nourished beaches are wider, though that sand keeps washing away and needs topping up.");
   if(st.meas.includes("retreat")) b.push("Where assets were stepped back, the shore was left to find its own line.");
-  if(st.apps.marina==="approve" && s[8].sand<0.24) b.push("Dredging has cut the sand feeding the river mouth and the spit.");
-  if(s[9].sand>0.85) b.push("The spit has grown as the drift drops its load past the river mouth.");
+  if(s[9].sand>0.85) b.push("The spit has grown as longshore drift drops its load past the river mouth.");
   return b.join(" ");
 }
-const Sim={initState,stepYear,run,outcome,voiceStates,engineerText,applyApprovals,geom,energyOf,START_BEACH};
+const Sim={initState,stepYear,run,outcome,voiceStates,engineerText,applyApprovals,geom,energyOf,START_BEACH,appDec,appLvl};
 if(typeof window!=="undefined"){ window.Sim=Sim; window._drawSVG=drawSVG; }
 
 /* ===== MAP (pure: state -> SVG) ===== */
@@ -286,7 +299,7 @@ function drawSVG(st, sel, stake){
       o+=alabel(cx, gy+12, "Wattle Bay township", '#3a3226');
     }
   });
-  // small dock at The Steps headland (node 4 — the secondary headland poking into the bay)
+  // small dock at The Steps headland (node 4 -- the secondary headland poking into the bay)
   {const dk=pts[4], dn=st.g[4].n;
     const dex=dk[0]+dn[0]*38, dey=dk[1]+dn[1]*38;
     o+=`<line x1="${fx(dk[0])}" y1="${fx(dk[1])}" x2="${fx(dex)}" y2="${fx(dey)}" stroke="#7a6448" stroke-width="4" stroke-linecap="round"/>`;
@@ -319,14 +332,20 @@ function drawSVG(st, sel, stake){
 let st, phase=1, sel=null;
 function redraw(){ $("map").innerHTML=drawSVG(st, sel, st.stake); }
 
+function availBudget(){
+  // base budget + developer levy from approved coastal housing
+  return C.BUDGET + D.APPS.reduce((a,app)=>{
+    return a + (appDec(st,app.id)==="approve" ? (app.budgetBonus||0) : 0);
+  }, 0);
+}
 function computeSpend(meas){
   return (meas||st.meas).reduce((a,k)=>a+((D.STRAT[k]&&D.STRAT[k].cost)||0),0);
 }
 function renderBudget(){
-  const spent=computeSpend(), rem=C.BUDGET-spent;
-  const pct=Math.min(Math.round(spent/C.BUDGET*100),100);
+  const avail=availBudget(), spent=computeSpend(), rem=avail-spent;
+  const pct=Math.min(Math.round(spent/avail*100),100);
   const col=pct>=90?"#b1492f":pct>=65?"#cf8336":"#3a8a4e";
-  $("budgetRow").innerHTML=`<span><strong>Budget:</strong> ${rem} of ${C.BUDGET} remaining</span><div class="budget-bar-wrap"><div class="budget-bar-fill" style="width:${pct}%;background:${col}"></div></div>`;
+  $("budgetRow").innerHTML=`<span><strong>Budget:</strong> ${rem} of ${avail} remaining</span><div class="budget-bar-wrap"><div class="budget-bar-fill" style="width:${pct}%;background:${col}"></div></div>`;
 }
 
 function renderStake(){
@@ -346,7 +365,7 @@ function downloadReport(){
   const dec=D.APPS.map(a=>`  ${a.name}: ${st.apps[a.id]||"undecided"}`).join("\n");
   const mez=st.seg.map((s,i)=>st.meas[i]!=="none"?`  ${i} ${s.name}: ${D.STRAT[st.meas[i]].name}`:null).filter(Boolean).join("\n")||"  (none)";
   const vlines=D.VOICES.filter(v=>v.id!=="engineer").map(v=>`  ${v.name}: ${D.VLINES[v.id][vs[v.id]]}`).join("\n");
-  const txt=`WATTLE BAY COASTAL PLAN, year ${st.year}\n\nBUDGET: ${spent} of ${C.BUDGET} spent\n\nDEVELOPMENT DECISIONS\n${dec}\n\nMANAGEMENT MEASURES\n${mez}\n\nWHAT HAPPENED\n  Coastal engineer: ${Sim.engineerText(st,o)}\n${vlines}\n`;
+  const txt=`WATTLE BAY COASTAL PLAN, year ${st.year}\n\nBUDGET: ${spent} of ${availBudget()} spent\n\nHOUSING DECISIONS\n${dec}\n\nMANAGEMENT MEASURES\n${mez}\n\nWHAT HAPPENED\n  Coastal engineer: ${Sim.engineerText(st,o)}\n${vlines}\n`;
   const b=new Blob([txt],{type:"text/plain"}); const u=URL.createObjectURL(b);
   const a=document.createElement("a"); a.href=u; a.download="wattle-bay-plan.txt"; a.click(); URL.revokeObjectURL(u);
 }
@@ -373,20 +392,50 @@ function renderChooser(){
 }
 function setMeasure(k){
   const test=[...st.meas]; test[sel]=k;
-  if(computeSpend(test)>C.BUDGET){ const msg=$("budgetMsg"); if(msg) msg.textContent="Over budget. Remove or swap a measure first."; return; }
+  if(computeSpend(test)>availBudget()){ const msg=$("budgetMsg"); if(msg) msg.textContent="Over budget. Remove or swap a measure first."; return; }
   st.meas[sel]=k; st.spend=computeSpend();
   renderChooser(); redraw(); renderBudget();
 }
+
 function renderApps(){
-  const lim=C.APP_LIMIT||2, nAp=D.APPS.filter(a=>st.apps[a.id]==="approve").length, atLim=nAp>=lim;
-  const rem=lim-nAp, remTxt=rem>0?rem+" approval"+(rem===1?"":"s")+" remaining":"Approval limit reached";
-  let out=`<p class="note" style="margin:0 0 10px">Approve at most <strong>${lim} of ${D.APPS.length}</strong>: you choose which ones the bay can handle. (${remTxt})</p>`;
-  D.APPS.forEach(a=>{const v=st.apps[a.id], lock=phase===2, appBlk=v!=="approve"&&atLim;
-    const mk=(val,cls,label)=>{const blk=lock||(val==="approve"&&appBlk);
-      return `<button class="${cls}${v===val?" on":""}${blk?" locked":""}" onclick="${blk?"":("setApp('"+a.id+"','"+val+"')")}">${label}</button>`;};
-    out+=`<div class="app"><h3>${a.name}</h3><p>${a.brief}</p><div class="toggle">${mk("approve","approve","Approve")}${mk("reject","reject","Reject")}</div></div>`;});
-  $("apps").innerHTML=out;}
-function setApp(id,val){st.apps[id]=val; renderApps();}
+  const lim=C.APP_LIMIT||2;
+  const nAp=D.APPS.filter(a=>appDec(st,a.id)==="approve").length, atLim=nAp>=lim;
+  const rem=lim-nAp;
+  let out=`<p class="note" style="margin:0 0 14px">Approve at most <strong>${lim} of ${D.APPS.length}</strong> proposals. Approving closer-to-coast housing gives the council more money to spend on protection (developer levy) -- but puts those buildings at greater risk. You must reject at least one. ${atLim?"Limit reached.":rem+" approval"+(rem===1?"":"s")+" remaining."}</p>`;
+  D.APPS.forEach(a=>{
+    const dec=appDec(st,a.id);
+    const locked=phase===2, appBlk=dec!=="approve"&&atLim;
+    out+=`<div class="app-card" id="acard-${a.id}">`;
+    out+=`<div class="app-title">${a.name}</div>`;
+    out+=`<p class="app-brief">${a.brief}</p>`;
+    out+=`<div class="app-bonus">If approved: +${a.budgetBonus} budget (developer coastal levy)</div>`;
+    if(!locked){
+      const aOnclick=appBlk?'':`setApp('${a.id}','approve')`;
+      const rOnclick=`setApp('${a.id}','reject')`;
+      out+=`<div class="toggle">`;
+      out+=`<button class="approve${dec==="approve"?" on":""}${appBlk?" locked":""}" onclick="${aOnclick}">Approve</button>`;
+      out+=`<button class="reject${dec==="reject"?" on":""}" onclick="${rOnclick}">Reject</button>`;
+      out+=`</div>`;
+    } else {
+      out+=`<div class="note" style="margin:0">Decision locked: <strong>${dec||"none"}</strong></div>`;
+    }
+    if(dec){
+      const cls=dec==="approve"?"approved":"rejected";
+      const txt=dec==="approve"?"APPROVED":"REJECTED";
+      out+=`<div class="stamp-mark ${cls}">${txt}</div>`;
+    }
+    out+=`</div>`;
+  });
+  $("apps").innerHTML=out;
+}
+
+function setApp(id,val){
+  if(phase===2)return;
+  st.apps[id]=val;
+  renderApps();
+  renderBudget();
+}
+
 function mkRng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function doRun(years,label){
   if(phase===1) Sim.applyApprovals(st);
@@ -395,11 +444,12 @@ function doRun(years,label){
   let h=`<div class="stamp">${label} (year ${st.year})</div>`;
   h+=`<div class="voice eng"><div class="who">Coastal engineer</div><p>${Sim.engineerText(st,o)}</p></div>`;
   D.VOICES.filter(v=>v.id!=="engineer").forEach(v=>{const stt=vs[v.id];
+    if(!stt) return;
     h+=`<div class="voice ${stt}"><div class="who">${v.name}</div><p>${D.VLINES[v.id][stt]}</p></div>`;});
   $("review").innerHTML=h; redraw(); renderChooser(); renderApps();
 }
 function runPhase1(){
-  if(Object.values(st.apps).some(v=>!v)){ $("phaseNote").textContent="Rule on every application first (approve or reject each one below), then run."; return; }
+  if(Object.values(st.apps).some(v=>!v)){ $("phaseNote").textContent="Rule on every proposal first (approve or reject each one), then run."; return; }
   doRun(10,"After the first decade"); phase=2; $("p1btn").style.display="none"; $("p2wrap").style.display="block";
   $("phaseNote").textContent="Phase 2: adjust your measures and run on. Approvals are locked, and hard structures already built cannot be removed."; renderApps(); renderChooser();}
 function runPhase2(){doRun(20,"After thirty years"); $("p2btn").disabled=true;}
@@ -446,7 +496,7 @@ HTML = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <span><i class="sw" style="background:#7a9b5e"></i>dunes</span>
 <span><i class="sw" style="background:#d7cfb8"></i>land / cliff</span>
 <span><i class="sw" style="background:#3d7fb8"></i>river mouth</span>
-<span><i class="sw" style="background:#8a5a3c"></i>town &amp; buildings</span>
+<span><i class="sw" style="background:#8a5a3c"></i>town and buildings</span>
 <span><i class="sw" style="background:#cf8336"></i>your measure</span>
 </div>
 <div id="stakePanel"></div>
@@ -455,14 +505,14 @@ HTML = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 </div>
 
 <div class="panel">
-<h2 class="sec"><span class="stepn">2</span>Rule on the development applications</h2>
-<p class="lead">Read the stakeholders first, then decide which applications the bay can handle. You cannot approve all of them -- you have to make a real choice.</p>
+<h2 class="sec"><span class="stepn">2</span>Rule on the housing proposals</h2>
+<p class="lead">Coastal views fetch a premium. Approving housing closer to the water raises more money for the council -- but puts those buildings at greater risk from erosion. You have to reject at least one proposal.</p>
 <div id="apps"></div>
 </div>
 
 <div class="panel">
 <h2 class="sec"><span class="stepn">3</span>Run the decades</h2>
-<p class="note" id="phaseNote">Phase 1: rule on the applications, place your measures, then run the first decade.</p>
+<p class="note" id="phaseNote">Phase 1: rule on the housing proposals, place your measures, then run the first decade.</p>
 <button class="run" id="p1btn" onclick="runPhase1()">Run the first decade (10 years)</button>
 <div id="p2wrap" style="display:none"><button class="run" id="p2btn" onclick="runPhase2()">Run to thirty years</button></div>
 <div class="review" id="review"></div>
