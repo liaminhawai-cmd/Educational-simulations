@@ -15,12 +15,11 @@ SWELL = [0.45, 0.89]
 META = {
   "title": "Wattle Bay -- coastal manager",
   "subtitle": "Year 7 Geography · Coasts · a living coastline",
-  "intro": ("You manage Wattle Bay, a fictional Victorian-style coast. The waves roll in from the open "
-            "ocean (the arrows). Where they hit square-on, like the headland, they hammer it; "
-            "where the bay shelters them, they drop their sand. Listen to the stakeholders, decide "
-            "which housing proposals to approve, place your protection measures where the coast needs them, "
-            "then run the decades and watch the coastline change."),
-  "driftNote": "Waves drive sand left to right along the shore (longshore drift). The headland and the bay change how hard the waves hit.",
+  "intro": ("You look after Wattle Bay, a made-up coast. Waves roll in from the open ocean (the arrows). "
+            "Where they hit straight on, like the headland, they wear it away fast. Where the bay shelters "
+            "them, they drop their sand and the beach grows. Work through the tabs: read the coast, choose "
+            "where new houses can go, protect the coast, then run the years and see what happens."),
+  "driftNote": "Waves push sand left to right along the shore (longshore drift). The headland and the bay change how hard the waves hit.",
 }
 
 # Nodes left -> right. bx,by = base position on a 960x560 map (sea above, land below).
@@ -43,36 +42,34 @@ SEGMENTS = [
 
 # Four strategies plus do-nothing. cost = one-off placement budget units.
 STRATEGIES = {
-  "none":    {"name":"Do nothing",        "letter":"·","cost":0,  "adv":"Lets natural processes run; no cost.","dis":"The coast keeps eroding where the waves are strong."},
-  "seawall": {"name":"Sea wall",          "letter":"W","cost":20, "adv":"Protects the base of cliffs, land and buildings; can stop coastal flooding.","dis":"Reflects wave energy so the waves stay powerful, scouring the beach in front and starving the coast downdrift. Expensive. High upkeep."},
-  "groyne":  {"name":"Groynes",           "letter":"G","cost":12, "adv":"Traps sand moving by longshore drift, building a beach on the updrift side.","dis":"Starves the beach downdrift. Costly to build and maintain."},
-  "nourish": {"name":"Beach nourishment", "letter":"N","cost":8,  "adv":"Rebuilds a natural, protective, tourist-friendly beach.","dis":"The new sand washes away and needs topping up every few years."},
-  "retreat": {"name":"Managed retreat",   "letter":"M","cost":10, "adv":"Steps assets back; lets beaches and dunes build; low cost; draws wildlife and visitors.","dis":"People must be compensated for lost buildings or land."},
+  "none":    {"name":"Do nothing",        "letter":"·","cost":0,  "adv":"Lets nature take its course; no cost.","dis":"The coast keeps wearing away where the waves are strong."},
+  "seawall": {"name":"Sea wall",          "letter":"W","cost":16, "adv":"Protects the cliff, land and buildings behind it; can stop the sea flooding in.","dis":"Bounces wave energy back, so the waves stay strong and wash the beach in front away. Costs a lot."},
+  "groyne":  {"name":"Groynes",           "letter":"G","cost":10, "adv":"Catches sand moving along the shore, building up the beach on one side.","dis":"Starves the beach further along the coast. Costs money to build and keep up."},
+  "nourish": {"name":"Beach nourishment", "letter":"N","cost":6,  "adv":"Adds new sand to make a wide, natural, tourist-friendly beach.","dis":"The new sand washes away, so you have to top it up every few years."},
+  "retreat": {"name":"Managed retreat",   "letter":"M","cost":8,  "adv":"Moves buildings back and lets the beach and dunes grow; cheap; good for wildlife.","dis":"People have to be paid for the buildings or land they give up."},
 }
 
-# Three housing proposals. Approving closer-to-coast proposals gives more council budget
-# (developers pay a coastal levy) but puts buildings at greater risk from erosion.
-# budgetBonus: extra units added to the spending pool if approved.
-# Sim effects applied in applyApprovals().
-APPLICATIONS = [
-  {"id":"clifftop",   "name":"Clifftop Estate",
-   "budgetBonus": 22,
-   "brief":"20 homes right on the clifftop above the soft limestone -- premium ocean views and strong council rates. The cliff edge is already retreating."},
-  {"id":"beachfront", "name":"Beachfront Holiday Park",
-   "budgetBonus": 12,
-   "brief":"40 holiday units tucked behind Main Beach. The dunes between the buildings and the waves are the only natural buffer."},
-  {"id":"township",   "name":"Coastal Heights Subdivision",
-   "budgetBonus": 5,
-   "brief":"30 homes set back from the shore near the township. Lower views, lower council revenue -- but sheltered from the cliff edge and direct wave action."},
+# Three housing sites the council can approve. The student clicks them on the map.
+# Closer to the water = more money (a developer levy adds to your budget) but more risk of
+# being lost to erosion. You can approve at most 2 of 3 (APP_LIMIT).
+#   node  : which coast node the houses sit on
+#   bonus : budget units added if approved
+#   risk  : "cliff" (lost if the cliff retreats), "beach" (lost if the beach washes away), "safe"
+HOUSING = [
+  {"id":"clifftop",   "name":"Clifftop homes",  "node":1, "bonus":22, "risk":"cliff",
+   "blurb":"Right on the cliff edge. Best views and the most money, but the soft cliff is wearing back fast."},
+  {"id":"beachfront", "name":"Beachfront homes","node":5, "bonus":12, "risk":"beach",
+   "blurb":"Just behind the beach. Good money. Safe only while the beach and dunes stay wide."},
+  {"id":"setback",    "name":"Set-back homes",  "node":7, "bonus":5,  "risk":"safe",
+   "blurb":"Back from the shore near the town. Less money, but well away from the wearing coast."},
 ]
 
 # Each voice has: concern (short line above map), view (paragraph), goals (list shown in panel).
 VOICES = [
-  {"id":"engineer","name":"Coastal engineer","role":"explains what the waves and drift did","colour":"#146c94",
+  {"id":"engineer","name":"Coastal engineer","role":"explains what the waves and the sand did","colour":"#146c94",
    "focus":[0,1,2,3,4],
-   "concern":"Watch where the waves hit hardest -- the headland and the soft cliffs. Thin beaches there mean fast erosion.",
-   "view":"I read this coast through wave energy, longshore drift and how fast the cliffs retreat. The headland is hard rock taking the full force of the swell; the soft limestone cliffs next to it move back quickly wherever the beach in front of them thins out. The sheltered bay collects sand by deposition; the spit grows from what longshore drift drops past the river mouth. Every hard structure you place changes the drift, with knock-on effects for everything further along the coast.",
-   "goals":["Track wave energy at the headland and cliffs: they face the swell directly","Watch beach width as a buffer that slows cliff retreat","Follow sand moving left-to-right along the shore (longshore drift)","Think about how each measure changes the drift for the coast further along"]},
+   "concern":"Watch where the waves hit hardest -- the headland and the soft cliffs. A thin beach there means the coast wears away fast.",
+   "view":"My job is to explain how this coast works, not to take a side. The headland is hard rock taking the full force of the waves; the soft cliffs next to it wear back quickly wherever the beach in front of them gets thin. The sheltered bay collects sand and the beach grows; the spit builds up from sand carried along the shore past the river mouth. Anything hard you build changes how the sand moves, which can help one spot and starve another further along."},
   {"id":"owners","name":"Traditional Owners","role":"river-mouth significant site, consultation","colour":"#7c3aed",
    "focus":[8],
    "concern":"The river mouth is a significant site. It needs protection and genuine consultation before any work -- not just an engineering decision made without us.",
@@ -125,13 +122,14 @@ QUESTIONS = [
 CONST = {
   "KFLUX":0.13,       # longshore transport coefficient (per boundary)
   "MOVEFRAC":0.9,     # most of a node's drift-driven sand can leave in a year
-  "STORM_P":0.20, "STORM_MULT":1.8,
-  "CLIFF_K":0.060, "BEACH_BUFFER":0.85, "ASSET_LIMIT":0.55,
+  "STORM_P":0.18, "STORM_MULT":1.7,
+  "CLIFF_K":0.048, "BEACH_BUFFER":0.85, "ASSET_LIMIT":0.62,
   "STORM_LOSS":0.05,
   "NOURISH":0.06, "NOURISH_WEAR":0.5,
   "SUPPLY":0.30,      # fraction of updrift-end capacity entering as new sand
   "FOCUS_LO":0.75, "FOCUS_HI":1.30,  # curvature focusing range (concave bay defocuses, convex head focuses)
   "OFF_SAND":34, "OFF_RET":70,       # render: pixels the shoreline moves per unit sand / retreat
-  "BUDGET":55,        # base spending pool; approving coastal housing adds budget (developer levy)
-  "APP_LIMIT":2,      # can approve at most 2 of 3 proposals; must reject at least one
+  "BEACH_LOST":0.12,  # beachfront homes are lost if beach sand drops below this
+  "BUDGET":60,        # base spending pool; approving coastal housing adds budget (developer levy)
+  "APP_LIMIT":2,      # can approve at most 2 of 3 housing sites
 }
