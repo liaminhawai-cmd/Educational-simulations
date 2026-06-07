@@ -4,7 +4,7 @@
 import json, os
 import data_coasts2 as DC
 
-OUT = "/mnt/user-data/outputs/Wattle-Bay-Coastal-Manager-v13.html"
+OUT = "/mnt/user-data/outputs/Coasts-Interactive.html"
 DATA = {"META":DC.META,"SWELL":DC.SWELL,"SEG":DC.SEGMENTS,"STRAT":DC.STRATEGIES,
         "APPS":DC.APPLICATIONS,"VOICES":DC.VOICES,
         "VLINES":DC.VOICE_LINES,"C":DC.CONST}
