@@ -28,17 +28,17 @@ META = {
 #  sand : starting beach volume 0..1                 dune : dune+veg 0..1
 #  asset: None/"road"/"houses"/"town"                cliff: erodes by retreat (vs sandy)
 SEGMENTS = [
-  {"id":0, "name":"Wattle Head",        "bx":70, "by":150,"soft":0.05,"energy":0.95,"sand":0.00,"dune":0.0,"asset":None,    "cliff":True, "kind":"headland"},
-  {"id":1, "name":"The Shoulder",       "bx":150,"by":200,"soft":0.50,"energy":0.85,"sand":0.04,"dune":0.0,"asset":None,    "cliff":True, "kind":"cliff"},
-  {"id":2, "name":"Cliff Road",         "bx":240,"by":236,"soft":0.80,"energy":0.80,"sand":0.05,"dune":0.0,"asset":"road",  "cliff":True, "kind":"cliff"},
-  {"id":3, "name":"Clifftop houses",    "bx":330,"by":252,"soft":0.85,"energy":0.78,"sand":0.05,"dune":0.0,"asset":"houses","cliff":True, "kind":"cliff"},
-  {"id":4, "name":"The Steps",          "bx":410,"by":292,"soft":0.55,"energy":0.52,"sand":0.28,"dune":0.1,"asset":None,    "cliff":True, "kind":"transition"},
-  {"id":5, "name":"Main Beach",         "bx":492,"by":338,"soft":0.20,"energy":0.30,"sand":0.72,"dune":0.3,"asset":None,    "cliff":False,"kind":"beach"},
-  {"id":6, "name":"Dune Reserve",       "bx":575,"by":356,"soft":0.20,"energy":0.24,"sand":0.82,"dune":0.7,"asset":None,    "cliff":False,"kind":"dune"},
-  {"id":7, "name":"Wattle Bay township","bx":660,"by":336,"soft":0.30,"energy":0.33,"sand":0.52,"dune":0.1,"asset":"town",  "cliff":False,"kind":"town"},
-  {"id":8, "name":"River mouth",        "bx":742,"by":300,"soft":0.30,"energy":0.26,"sand":0.34,"dune":0.2,"asset":None,    "cliff":False,"kind":"estuary"},
-  {"id":9, "name":"The Spit",           "bx":830,"by":258,"soft":0.20,"energy":0.30,"sand":0.62,"dune":0.4,"asset":None,    "cliff":False,"kind":"spit"},
-  {"id":10,"name":"Far Beach",          "bx":910,"by":236,"soft":0.25,"energy":0.58,"sand":0.42,"dune":0.2,"asset":None,    "cliff":False,"kind":"beach"},
+  {"id":0, "name":"Wattle Head",        "bx":55, "by":132,"soft":0.05,"energy":0.95,"sand":0.00,"dune":0.0,"asset":None,    "cliff":True, "kind":"headland"},
+  {"id":1, "name":"The Shoulder",       "bx":138,"by":190,"soft":0.50,"energy":0.82,"sand":0.03,"dune":0.0,"asset":None,    "cliff":True, "kind":"cliff"},
+  {"id":2, "name":"Cliff Road",         "bx":215,"by":238,"soft":0.80,"energy":0.78,"sand":0.05,"dune":0.0,"asset":"road",  "cliff":True, "kind":"cliff"},
+  {"id":3, "name":"Clifftop houses",    "bx":300,"by":255,"soft":0.85,"energy":0.75,"sand":0.05,"dune":0.0,"asset":"houses","cliff":True, "kind":"cliff"},
+  {"id":4, "name":"The Steps",          "bx":378,"by":228,"soft":0.40,"energy":0.68,"sand":0.02,"dune":0.0,"asset":None,    "cliff":True, "kind":"headland"},
+  {"id":5, "name":"Main Beach",         "bx":455,"by":328,"soft":0.20,"energy":0.28,"sand":0.72,"dune":0.3,"asset":None,    "cliff":False,"kind":"beach"},
+  {"id":6, "name":"Dune Reserve",       "bx":545,"by":362,"soft":0.20,"energy":0.22,"sand":0.82,"dune":0.7,"asset":None,    "cliff":False,"kind":"dune"},
+  {"id":7, "name":"Wattle Bay township","bx":635,"by":338,"soft":0.30,"energy":0.32,"sand":0.52,"dune":0.1,"asset":"town",  "cliff":False,"kind":"town"},
+  {"id":8, "name":"River mouth",        "bx":725,"by":294,"soft":0.30,"energy":0.25,"sand":0.34,"dune":0.2,"asset":None,    "cliff":False,"kind":"estuary"},
+  {"id":9, "name":"The Spit",           "bx":822,"by":252,"soft":0.20,"energy":0.30,"sand":0.62,"dune":0.4,"asset":None,    "cliff":False,"kind":"spit"},
+  {"id":10,"name":"Far Beach",          "bx":910,"by":228,"soft":0.25,"energy":0.58,"sand":0.42,"dune":0.2,"asset":None,    "cliff":False,"kind":"beach"},
 ]
 
 # Four strategies plus do-nothing. cost = one-off placement budget units.
@@ -135,4 +135,5 @@ CONST = {
   "FOCUS_LO":0.75, "FOCUS_HI":1.30,  # curvature focusing range (concave bay defocuses, convex head focuses)
   "OFF_SAND":34, "OFF_RET":70,       # render: pixels the shoreline moves per unit sand / retreat
   "BUDGET":50,        # one-off placement budget; forces prioritisation across the coast
+  "APP_LIMIT":2,     # max approvals; student must reject at least one application
 }

@@ -286,6 +286,16 @@ function drawSVG(st, sel, stake){
       o+=alabel(cx, gy+12, "Wattle Bay township", '#3a3226');
     }
   });
+  // small dock at The Steps headland (node 4 — the secondary headland poking into the bay)
+  {const dk=pts[4], dn=st.g[4].n;
+    const dex=dk[0]+dn[0]*38, dey=dk[1]+dn[1]*38;
+    o+=`<line x1="${fx(dk[0])}" y1="${fx(dk[1])}" x2="${fx(dex)}" y2="${fx(dey)}" stroke="#7a6448" stroke-width="4" stroke-linecap="round"/>`;
+    for(let p=1;p<=3;p++){const px=dk[0]+dn[0]*12*p, py=dk[1]+dn[1]*12*p;
+      o+=`<line x1="${fx(px-3)}" y1="${fx(py)}" x2="${fx(px+3)}" y2="${fx(py)}" stroke="#5e4d38" stroke-width="2.5"/>`;}
+    o+=`<ellipse cx="${fx(dex)}" cy="${fx(dey)}" rx="8" ry="3" fill="#2d3a42" opacity="0.9"/>`;
+    o+=`<line x1="${fx(dex)}" y1="${fx(dey-3)}" x2="${fx(dex)}" y2="${fx(dey-14)}" stroke="#2d3a42" stroke-width="1.2"/>`;
+    o+=`<path d="M${fx(dex)} ${fx(dey-13)} L${fx(dex+8)} ${fx(dey-7)} L${fx(dex)} ${fx(dey-6)} Z" fill="#e0dbd0"/>`;
+    o+=alabel(dk[0]+6, dk[1]+48, "Steps dock", '#3a566b');}
   // measure badges + click hotspots + node labels
   st.seg.forEach((s,i)=>{const x=pts[i][0], y=pts[i][1];
     if(st.meas[i]!=="none"){o+=`<circle cx="${x.toFixed(1)}" cy="${(y-16).toFixed(1)}" r="11" fill="#cf8336" stroke="#fff" stroke-width="2"/>`+
@@ -367,10 +377,15 @@ function setMeasure(k){
   st.meas[sel]=k; st.spend=computeSpend();
   renderChooser(); redraw(); renderBudget();
 }
-function renderApps(){$("apps").innerHTML=D.APPS.map(a=>{const v=st.apps[a.id], lock=phase===2;
-  const b=(val,cls,label)=>`<button class="${cls}${v===val?' on':''}${lock?' locked':''}" onclick="${lock?'':`setApp('${a.id}','${val}')`}">${label}</button>`;
-  return `<div class="app"><h3>${a.name}</h3><p>${a.brief}</p><div class="toggle">
-    ${b('approve','approve','Approve')}${b('reject','reject','Reject')}</div></div>`;}).join("");}
+function renderApps(){
+  const lim=C.APP_LIMIT||2, nAp=D.APPS.filter(a=>st.apps[a.id]==="approve").length, atLim=nAp>=lim;
+  const rem=lim-nAp, remTxt=rem>0?rem+" approval"+(rem===1?"":"s")+" remaining":"Approval limit reached";
+  let out=`<p class="note" style="margin:0 0 10px">Approve at most <strong>${lim} of ${D.APPS.length}</strong>: you choose which ones the bay can handle. (${remTxt})</p>`;
+  D.APPS.forEach(a=>{const v=st.apps[a.id], lock=phase===2, appBlk=v!=="approve"&&atLim;
+    const mk=(val,cls,label)=>{const blk=lock||(val==="approve"&&appBlk);
+      return `<button class="${cls}${v===val?" on":""}${blk?" locked":""}" onclick="${blk?"":("setApp('"+a.id+"','"+val+"')")}">${label}</button>`;};
+    out+=`<div class="app"><h3>${a.name}</h3><p>${a.brief}</p><div class="toggle">${mk("approve","approve","Approve")}${mk("reject","reject","Reject")}</div></div>`;});
+  $("apps").innerHTML=out;}
 function setApp(id,val){st.apps[id]=val; renderApps();}
 function mkRng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function doRun(years,label){
@@ -441,7 +456,7 @@ HTML = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 
 <div class="panel">
 <h2 class="sec"><span class="stepn">2</span>Rule on the development applications</h2>
-<p class="lead">Approve or reject each one. Every approval brings money and jobs to the area, and a pressure on the coast. Read the stakeholders first.</p>
+<p class="lead">Read the stakeholders first, then decide which applications the bay can handle. You cannot approve all of them -- you have to make a real choice.</p>
 <div id="apps"></div>
 </div>
 
