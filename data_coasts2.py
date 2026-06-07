@@ -51,16 +51,12 @@ STRATEGIES = {
 }
 
 APPLICATIONS = [
-  {"id":"trawl",  "name":"Expand the trawling fleet","econ":"high",
-   "brief":"More boats, more catch, more jobs. Heavy trawling and bycatch pressure the fish stocks and the river-mouth nursery."},
-  {"id":"marina", "name":"Marina with a dredged channel (township)","econ":"high",
-   "brief":"A marina and dredged channel at the township. Boating money, but dredging pulls sand out and cuts the drift feeding the river mouth and spit."},
-  {"id":"housing","name":"Clifftop housing estate","econ":"high",
-   "brief":"New homes along the soft limestone clifftop. Strong rates, but far more property in the path of an eroding cliff."},
-  {"id":"caravan","name":"Caravan park behind the dunes","econ":"med",
-   "brief":"A tourist park behind the Dune Reserve. Steady income, but foot traffic flattens the dune vegetation unless the dunes are protected."},
-  {"id":"oyster", "name":"Oyster lease in the river mouth","econ":"med",
-   "brief":"A small aquaculture lease in the estuary. Local food and jobs, but only if the river mouth stays clean and healthy, and the area is culturally significant."},
+  {"id":"trawl",  "name":"Expand the trawling fleet",
+   "brief":"More boats, more catch, more jobs for the town now. But heavy trawling and bycatch pressure the fish stocks and the river-mouth nursery the whole fishery depends on."},
+  {"id":"marina", "name":"Marina with a dredged channel",
+   "brief":"A marina and dredged channel at the township brings boating money and visitors. The dredging pulls sand out of the system and cuts the longshore drift that feeds the river mouth and the spit."},
+  {"id":"oyster", "name":"Oyster lease in the river mouth",
+   "brief":"A small aquaculture lease in the estuary: local food and steady jobs. It only works if the river mouth stays clean and healthy, and because the estuary is a significant site the Traditional Owners must be consulted."},
 ]
 
 # Each voice has: concern (short line above map), view (paragraph), goals (list shown in panel).
@@ -93,19 +89,39 @@ VOICES = [
 ]
 
 VOICE_LINES = {
-  "owners":{"good":"The river mouth is healthy and we were consulted. Stepping back where it made sense respects how this place has always worked.",
-            "mixed":"Some of the work near the river mouth worries us. Keep us at the table before the next round.",
-            "bad":"Dredging and pollution have reached a site that should have been protected. This needed our consent and our knowledge, and it did not happen."},
-  "eco":{"good":"The dunes and the estuary are holding and the beach is doing its natural job. Wildlife has somewhere to live.",
-         "mixed":"Mixed. Some habitat hangs on, but a few choices are straining the dunes or the river mouth.",
-         "bad":"The dunes are breaking down and the estuary is in trouble. Hard walls and heavy industry have stripped the life out of this coast."},
-  "town":{"good":"The beach is wide, the town and homes are safe, and the coast still looks like somewhere people want to visit.",
-          "mixed":"Safe enough, but the beach has thinned or the coast is turning into a wall. Visitors notice.",
-          "bad":"We have lost beach or buildings, or both. The coast is washing away or buried in concrete, and visitors are going elsewhere."},
-  "fish":{"good":"There is a living to be made here and the stocks are holding. Good balance.",
-          "mixed":"Getting by, but the catch is sliding or there was little room for industry at all.",
-          "bad":"The fishery has been hammered and there is not enough work. Short-term catch is not worth a dead coast."},
+  "owners":{"good":"The river mouth was kept clean and undisturbed, and we were consulted before any work. Stepping back where it made sense respects how this Country has always been cared for. This is what good process looks like.",
+            "mixed":"Some of the work near the river mouth concerns us, and we were not always brought in early enough. The site is holding for now, but keep us at the table before the next round of decisions.",
+            "bad":"Dredging and pollution have reached a site that should have been protected, and the decisions were made without our consent or our knowledge. This is exactly the harm we asked you to avoid, and money cannot undo it."},
+  "eco":{"good":"The dune vegetation is holding the sand, the estuary nursery is healthy and the beach is doing its natural job as a sea defence. Wildlife still has somewhere to live. This is a coast working with nature, not against it.",
+         "mixed":"It is a mixed picture. Some habitat is hanging on, but a few of your choices are straining the dunes or the river mouth, and the system is less resilient than it was.",
+         "bad":"The dunes are breaking down and the estuary is in serious trouble. Hard walls and heavy industry have cut the natural sand supply and stripped the life out of this coast. Recovery here will take decades, if it comes at all."},
+  "town":{"good":"The beach is still wide and inviting, the road and the homes are safe, and the coast looks like somewhere people want to come. That is good for business and good for the people who live here.",
+          "mixed":"We are safe enough, but the beach has thinned or the coast is turning into a wall of rock and concrete. Visitors notice, and a thin beach is a poorer draw than a wide one.",
+          "bad":"We have lost beach, or buildings, or both. The shoreline is either washing away or buried in hard defences, and the visitors who keep this town alive are starting to go elsewhere."},
+  "fish":{"good":"There is a living to be made here and the fish stocks are holding up. You left room for the town's economy without wrecking the nursery the catch depends on. That is the balance we need.",
+          "mixed":"We are getting by, but the catch is sliding, or there was barely any room left for industry at all. A coast locked up tight is as hard on us as one that has been overfished.",
+          "bad":"The fishery has been hammered and there is not enough work to keep families here. A short-term catch or a dead estuary is no future. Short-term thinking has cost us the long-term living."},
 }
+
+# Reflection questions. lookFor = keywords for a coverage self-check (not a correctness check).
+QUESTIONS = [
+  {"n":1, "tie":"Erosion and deposition (4.2 / 4.3)",
+   "q":"Explain why Wattle Head (the headland) is worn back hard while Main Beach in the bay builds up. Use the words wave energy, refraction and deposition.",
+   "lookFor":["headland","bay","wave energy","refraction","deposition","longshore","drift","sheltered","erosion"],
+   "selfcheck":"A strong answer links the headland facing the swell (high wave energy, refraction focusing the waves) to fast erosion, and the sheltered bay (low energy) to deposition and a wider beach."},
+  {"n":2, "tie":"Management strategies (4.2)",
+   "q":"Pick one measure you placed. Explain why that site needed it, and name one disadvantage of that measure.",
+   "lookFor":["sea wall","seawall","groyne","nourish","managed retreat","retreat","beach","downdrift","starve","scour","cost","expensive"],
+   "selfcheck":"A strong answer names the measure, the problem at that site (eroding cliff, thin beach, asset at risk), and an honest downside such as cost, scouring, or starving the coast downdrift."},
+  {"n":3, "tie":"Cultural value and consultation",
+   "q":"The river mouth is a significant site for the Traditional Owners. How did your decisions respect that, and why does consultation matter before any work?",
+   "lookFor":["river mouth","estuary","traditional owners","consult","protect","significant","culture","cultural","dredge","marina"],
+   "selfcheck":"A strong answer says whether the estuary was protected from dredging and pollution, and explains that the Traditional Owners must be consulted because it is their Country and a significant site."},
+  {"n":4, "tie":"Threats and weighing it up (4.5)",
+   "q":"Some clifftop houses sit close to an eroding, soft-rock cliff. Using what happened, what advice would you give planners and buyers about building near this coast?",
+   "lookFor":["erosion","retreat","setback","soft rock","limestone","cliff","managed retreat","risk","monitor","build","distance"],
+   "selfcheck":"A strong answer uses the erosion you saw to argue for setbacks from the cliff edge, caution on soft rock, and planning for a coast that keeps moving."},
+]
 
 CONST = {
   "KFLUX":0.13,       # longshore transport coefficient (per boundary)

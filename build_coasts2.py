@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # Build the v2 offline Coasts sim from data_coasts2.py.  Run: python3 build_coasts2.py
-# Out: /mnt/user-data/outputs/Wattle-Bay-Coastal-Manager-v13.html
+# Out: /mnt/user-data/outputs/Coasts-Interactive.html
 import json, os
 import data_coasts2 as DC
 
 OUT = "/mnt/user-data/outputs/Coasts-Interactive.html"
 DATA = {"META":DC.META,"SWELL":DC.SWELL,"SEG":DC.SEGMENTS,"STRAT":DC.STRATEGIES,
-        "APPS":DC.APPLICATIONS,"VOICES":DC.VOICES,
-        "VLINES":DC.VOICE_LINES,"C":DC.CONST}
+        "APPS":DC.APPLICATIONS,"VOICES":DC.VOICES,"VLINES":DC.VOICE_LINES,
+        "Q":DC.QUESTIONS,"C":DC.CONST}
 DATA_JSON = json.dumps(DATA, ensure_ascii=False)
 
 CSS = r"""
@@ -20,13 +20,10 @@ header{background:#1d2a33;color:#fff;margin:0 -16px 16px;padding:18px 22px;borde
 header h1{margin:0;font-size:23px}
 header .sub{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:#a9c2d0;text-transform:uppercase;letter-spacing:.09em;margin-top:4px}
 .intro{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:12px 15px;margin-bottom:12px;font-size:14.5px}
-.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid var(--line);margin-bottom:12px}
-.tab{cursor:pointer;border:1px solid var(--line);border-bottom:none;background:#e7ebee;border-radius:6px 6px 0 0;padding:8px 14px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--muted)}
-.tab.on{background:var(--paper);color:var(--ink);border-color:var(--accent)}
-.view{display:none}.view.on{display:block}
 .panel{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px;margin-bottom:12px}
 .lead{font-family:ui-sans-serif,system-ui,sans-serif;color:var(--muted);font-size:13px;margin:0 0 10px}
-h2.sec{font-size:18px;margin:0 0 6px}
+h2.sec{font-size:18px;margin:0 0 8px}
+h2.sec .stepn{display:inline-block;background:var(--accent);color:#fff;font-size:12px;font-weight:700;border-radius:99px;padding:1px 9px;margin-right:8px;vertical-align:middle;font-family:ui-sans-serif,system-ui,sans-serif}
 .mapwrap{width:100%;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#cfe2ec}
 svg{display:block;width:100%;height:auto}
 .legend{display:flex;flex-wrap:wrap;gap:9px 15px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--muted);margin-top:8px}
@@ -40,7 +37,7 @@ svg{display:block;width:100%;height:auto}
 .app{border:1px solid var(--line);border-radius:7px;padding:11px 13px;margin-bottom:9px}
 .app h3{font-family:ui-sans-serif,system-ui,sans-serif;font-size:14.5px;margin:0 0 3px}.app p{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;color:var(--muted);margin:0 0 8px}
 .toggle{display:inline-flex;border:1px solid var(--line);border-radius:18px;overflow:hidden}
-.toggle button{cursor:pointer;border:none;background:#fff;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;padding:6px 14px;color:var(--muted)}
+.toggle button{cursor:pointer;border:none;background:#fff;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;padding:6px 16px;color:var(--muted)}
 .toggle button.approve.on{background:var(--okb);color:var(--ok);font-weight:600}.toggle button.reject.on{background:var(--nob);color:var(--no);font-weight:600}.toggle button.locked{opacity:.5;cursor:not-allowed}
 button.run{font-family:ui-sans-serif,system-ui,sans-serif;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:7px;padding:11px 18px;font-size:14.5px;font-weight:600}button.run:disabled{opacity:.4;cursor:not-allowed}
 .voice{border-left:3px solid var(--line);padding:8px 12px;margin-bottom:9px;background:#fafafa}
@@ -48,21 +45,31 @@ button.run{font-family:ui-sans-serif,system-ui,sans-serif;cursor:pointer;border:
 .voice .who{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}.voice p{margin:3px 0 0;font-size:14px}
 .stamp{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin:4px 0 10px}
 .note{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;color:var(--muted);margin-top:8px}
-textarea{width:100%;min-height:60px;font:inherit;font-size:14px;padding:8px;border:1px solid var(--line);border-radius:6px;resize:vertical;margin-top:6px}
+textarea{width:100%;min-height:64px;font:inherit;font-size:14px;padding:8px;border:1px solid var(--line);border-radius:6px;resize:vertical;margin-top:6px}
 .stakebar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
 .skbtn{cursor:pointer;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;border:1px solid var(--line);background:#fff;border-radius:16px;padding:6px 11px;color:var(--muted)}
 .skbtn.on{font-weight:700}
 .concern{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;color:var(--ink);min-height:18px;margin:0 0 8px}
-.toggle button.cond.on{background:#fff4e2;color:#a9671f;font-weight:600}
 .btn2{font-family:ui-sans-serif,system-ui,sans-serif;cursor:pointer;border:1px solid var(--accent);background:#fff;color:var(--accent);border-radius:7px;padding:9px 14px;font-size:13.5px;font-weight:600;margin-top:10px}
 .stakeview{border-left:3px solid var(--line);padding:10px 13px;background:#fafafa;margin-top:10px;border-radius:0 6px 6px 0}
 .stakeview .sv-name{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
 .stakeview p{margin:5px 0 6px;font-size:14px}
+.stakeview .gh{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin:2px 0 3px}
 .stakeview ul{margin:0;padding-left:18px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:13.5px}
 .stakeview li{margin-bottom:2px}
 .budget-row{display:flex;align-items:center;gap:10px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;padding:8px 10px;background:#f7fafb;border:1px solid var(--line);border-radius:6px;margin-top:10px}
 .budget-bar-wrap{flex:1;height:8px;background:#e3e0e8;border-radius:4px;overflow:hidden}
 .budget-bar-fill{height:100%;border-radius:4px;transition:width .25s}
+.saq{border:1px solid var(--line);border-radius:7px;padding:12px 14px;margin-bottom:11px;background:#fff}
+.saq .tie{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:4px}
+.saq .q{font-size:15px;margin:0 0 6px}
+.saq textarea{margin-top:0}
+.saqrow{display:flex;align-items:center;gap:10px;margin-top:7px}
+.cbtn{font-family:ui-sans-serif,system-ui,sans-serif;cursor:pointer;background:#eef1f4;border:1px solid var(--line);border-radius:6px;padding:7px 13px;font-size:12.5px;font-weight:600;color:var(--ink)}
+.wc{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:var(--muted)}
+.sc{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;margin-top:9px;padding:10px 12px;border-radius:6px;background:#f7fafb;border:1px solid var(--line);display:none}
+.sc.show{display:block}.sc.warn{background:#fdeccd}
+.sc .miss{color:var(--no);margin-top:3px}.sc .ok{color:var(--ok)}
 """
 
 JS = r"""
@@ -92,7 +99,6 @@ function energyOf(st,i,emult){
   const s=st.seg[i], gg=st.g[i];
   let e=s.energyBase*(0.55+0.45*gg.facing)*gg.focus*emult;
   if(st.meas[i]==="armour") e*=0.55;
-  if(st.meas[i]==="dunes")  e*=(1-0.25*Math.max(s.dune,0.5));
   return e;
 }
 
@@ -101,11 +107,11 @@ function clamp(v,a,b){return v<a?a:v>b?b:v;}
 function initState(){
   return {seg:D.SEG.map(s=>({...s,energyBase:s.energy,sand:s.sand,dune:s.dune,retreat:0,lost:false})),
           g:geom(), meas:D.SEG.map(()=> "none"),
-          apps:{trawl:null,marina:null,housing:null,caravan:null,oyster:null}, stake:null,
+          apps:{trawl:null,marina:null,oyster:null}, stake:null,
           fish:1.0, spend:0, year:0};
 }
 function applyApprovals(st){ if(st.apps.housing==="approve" && st.seg[4].asset===null) st.seg[4].asset="houses"; }
-function appLvl(st,id){return ({approve:1,conditions:0.5})[st.apps[id]]||0;}
+function appLvl(st,id){return ({approve:1})[st.apps[id]]||0;}   // approve = 1, anything else = 0
 function stepYear(st, stormR){
   const N=st.seg.length, s=st.seg, m=st.meas, P=s.map(x=>[x.bx,x.by]);
   const storm=stormR<C.STORM_P, emult=storm?C.STORM_MULT:1;
@@ -144,8 +150,6 @@ function stepYear(st, stormR){
     s[i].retreat+=add;
     if(s[i].asset && !s[i].lost && m[i]!=="retreat" && s[i].retreat>=C.ASSET_LIMIT) s[i].lost=true;
   }}
-  if(st.apps.caravan==="approve" && m[6]!=="dunes") s[6].dune=clamp(s[6].dune-0.02,0,1);
-  if(m[6]==="dunes") s[6].dune=clamp(s[6].dune+0.01,0,1);
   const tl=appLvl(st,'trawl');
   st.fish = clamp(st.fish + (tl>0? -C.FISH_TRAWL*tl : C.FISH_RECOVER), 0, 1);
   st.year++;
@@ -157,11 +161,11 @@ function outcome(st){
   const dunes=(s[5].dune+s[6].dune)/2, assetsLost=s.filter(x=>x.lost).length;
   const estuary=clamp((s[8].sand/0.34)*0.55+(s[9].sand/0.62)*0.45-appLvl(st,'marina')*0.30-appLvl(st,'trawl')*0.15,0,1);
   const walled=st.meas.filter(x=>x==="seawall"||x==="groyne").length;
-  const approved=Object.values(st.apps).filter(v=>v==="approve"||v==="conditions").length;
+  const approved=Object.values(st.apps).filter(v=>v==="approve").length;
   return {beach,dunes,assetsLost,estuary,fish:st.fish,walled,approved,startBeach:START_BEACH};
 }
 function voiceStates(st,o){const mar=appLvl(st,'marina'), tr=appLvl(st,'trawl');return{
-  owners:(o.estuary>=0.42 && !(mar>0&&o.estuary<0.55))?"good":(o.estuary<0.18||(mar>0&&o.estuary<0.35))?"bad":"mixed",
+  owners:(mar===0&&o.estuary>=0.28)?"good":(o.estuary<0.15||(mar>0&&o.estuary<0.50))?"bad":"mixed",
   eco:(o.dunes>=0.45&&o.estuary>=0.28&&o.fish>=0.55&&tr===0)?"good":(o.dunes<0.25||o.estuary<0.15||o.fish<0.40)?"bad":"mixed",
   town:(o.beach>=0.8*o.startBeach&&o.assetsLost===0&&o.walled<=2)?"good":(o.beach<0.5*o.startBeach||o.assetsLost>0)?"bad":"mixed",
   fish:(o.fish>=0.55&&o.approved>=1)?"good":(o.fish<0.40||o.approved===0)?"bad":"mixed"};}
@@ -171,9 +175,12 @@ function engineerText(st,o){
   b.push(dB>0.06?"The sheltered bay has built out, beaches widening.":dB<-0.06?"The beaches have thinned overall.":"The beaches have roughly held.");
   const lost=s.filter(x=>x.lost).map(x=>x.asset);
   if(lost.length) b.push("The "+lost.join(" and the ")+" "+(lost.length>1?"have":"has")+" gone over the eroding cliff.");
+  if(st.meas.includes("seawall")) b.push("Where sea walls were built the cliff is held, but the beach in front has been scoured down.");
   if((st.meas.includes("groyne")||st.meas.includes("seawall")) && s[10].sand<0.30)
     b.push("Starved of sand by the structures updrift, Far Beach has worn away.");
-  if(st.apps.marina && s[8].sand<0.24) b.push("Dredging has cut the sand feeding the river mouth and the spit.");
+  if(st.meas.includes("nourish")) b.push("The nourished beaches are wider, though that sand keeps washing away and needs topping up.");
+  if(st.meas.includes("retreat")) b.push("Where assets were stepped back, the shore was left to find its own line.");
+  if(st.apps.marina==="approve" && s[8].sand<0.24) b.push("Dredging has cut the sand feeding the river mouth and the spit.");
   if(s[9].sand>0.85) b.push("The spit has grown as the drift drops its load past the river mouth.");
   return b.join(" ");
 }
@@ -194,6 +201,14 @@ function coastYat(pts,x){
   return x<pts[0][0]?pts[0][1]:pts[pts.length-1][1];
 }
 function nearest(st,pt){let bi=0,bd=1e9; st.seg.forEach((s,i)=>{const d=Math.hypot(s.bx-pt[0],s.by-pt[1]); if(d<bd){bd=d;bi=i;}}); return {i:bi,d:bd};}
+function fx(n){return (+n).toFixed(1);}
+function house(cx,gy,w,h,wall,opa){   // little house: body + pitched roof, base at gy, grows upward
+  const x=cx-w/2;
+  return `<rect x="${fx(x)}" y="${fx(gy-h)}" width="${fx(w)}" height="${fx(h)}" fill="${wall}" opacity="${opa}"/>`+
+         `<path d="M${fx(x-2)} ${fx(gy-h)} L${fx(cx)} ${fx(gy-h-w*0.55)} L${fx(x+w+2)} ${fx(gy-h)} Z" fill="#6e3522" opacity="${opa}"/>`+
+         `<rect x="${fx(cx-1.6)}" y="${fx(gy-h*0.62)}" width="3.2" height="${fx(h*0.5)}" fill="#5a4636" opacity="${opa}"/>`;
+}
+function alabel(cx,y,txt,col){return `<text x="${fx(cx)}" y="${fx(y)}" font-size="10.5" text-anchor="middle" font-weight="600" fill="${col||'#3a3226'}">${txt}</text>`;}
 function drawSVG(st, sel, stake){
   const pts=coastPts(st), N=st.seg.length;
   let o=`<svg viewBox="0 0 ${MW} ${MH}" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">`;
@@ -214,6 +229,11 @@ function drawSVG(st, sel, stake){
   pts.forEach(p=>land+=`L ${p[0].toFixed(1)} ${p[1].toFixed(1)} `);
   land+=`L ${MW} ${pts[N-1][1].toFixed(1)} L ${MW} ${MH} L 0 ${MH} Z`;
   o+=`<path d="${land}" fill="#d7cfb8"/>`;
+  // grassy band just inland for a bit of texture
+  let grass=`M 0 ${(pts[0][1]+24).toFixed(1)} `;
+  pts.forEach(p=>grass+=`L ${p[0].toFixed(1)} ${(p[1]+24).toFixed(1)} `);
+  grass+=`L ${MW} ${(pts[N-1][1]+24).toFixed(1)} L ${MW} ${MH} L 0 ${MH} Z`;
+  o+=`<path d="${grass}" fill="#cdc9ac" opacity="0.55"/>`;
   // beach band (sand) seaward of the coastline
   let beachOuter=[];
   for(let i=0;i<N;i++){const bp=3+st.seg[i].sand*38; beachOuter.push([pts[i][0]+st.g[i].n[0]*bp, pts[i][1]+st.g[i].n[1]*bp]);}
@@ -225,22 +245,54 @@ function drawSVG(st, sel, stake){
   for(let i=0;i<N;i++){ if(st.seg[i].dune>0.25){const x=pts[i][0], y=pts[i][1];
     o+=`<circle cx="${x.toFixed(1)}" cy="${(y+16).toFixed(1)}" r="${(7+st.seg[i].dune*9).toFixed(1)}" fill="#7a9b5e" opacity="0.9"/>`;}}
   // river mouth channel
-  const em=st.seg[8], ex=pts[8][0];
-  o+=`<path d="M ${(ex-16)} ${pts[8][1].toFixed(1)} q 18 60 6 120 l 22 0 q 10 -60 4 -120 z" fill="#3d7fb8"/>`;
-  // assets (drawn landward of the coastline)
+  const ex8=pts[8][0];
+  o+=`<path d="M ${(ex8-16)} ${pts[8][1].toFixed(1)} q 18 60 6 120 l 22 0 q 10 -60 4 -120 z" fill="#3d7fb8"/>`;
+  // ===== assets (drawn landward) with clearer art + labels =====
   st.seg.forEach((s,i)=>{ if(!s.asset) return;
-    const x=pts[i][0], y=pts[i][1]+30, lost=s.lost, opa=lost?0.35:1;
-    if(s.asset==="road") o+=`<rect x="${x-34}" y="${y}" width="68" height="7" rx="2" fill="${lost?'#caa':'#8a6d4b'}" opacity="${opa}"/>`;
-    if(s.asset==="houses"){for(let k=-1;k<2;k++) o+=`<rect x="${x+k*18-6}" y="${y}" width="13" height="11" fill="${lost?'#caa':'#b1492f'}" opacity="${opa}"/>`; if(lost) o+=`<text x="${x}" y="${y+9}" font-size="13" text-anchor="middle" fill="#b1492f">&#10005;</text>`;}
-    if(s.asset==="town"){for(let k=-1;k<3;k++) o+=`<rect x="${x+k*15-4}" y="${y}" width="11" height="13" fill="#6f6a78"/>`;}
+    const cx=pts[i][0], gy=pts[i][1]+42, lost=s.lost, opa=lost?0.4:1;
+    if(s.asset==="road"){
+      const tg=st.g[i].t, hw=44, ly=pts[i][1]+20;
+      const ax=cx-tg[0]*hw, ay=ly-tg[1]*hw, bxr=cx+tg[0]*hw, byr=ly+tg[1]*hw;
+      o+=`<line x1="${fx(ax)}" y1="${fx(ay)}" x2="${fx(bxr)}" y2="${fx(byr)}" stroke="${lost?'#b3a99a':'#6b6258'}" stroke-width="9" stroke-linecap="round" opacity="${opa}"/>`;
+      o+=`<line x1="${fx(ax)}" y1="${fx(ay)}" x2="${fx(bxr)}" y2="${fx(byr)}" stroke="#f2e9d0" stroke-width="1.4" stroke-dasharray="6 6" opacity="${opa}"/>`;
+      o+=alabel(cx, gy, lost?"Cliff Road (lost)":"Cliff Road", lost?'#b1492f':'#3a3226');
+      if(lost) o+=`<text x="${fx(cx)}" y="${fx(pts[i][1]+4)}" font-size="14" text-anchor="middle" fill="#b1492f">&#10005;</text>`;
+    }
+    if(s.asset==="houses"){
+      for(let k=-1;k<2;k++) o+=house(cx+k*21, gy, 16, 13, lost?'#c9b7a8':'#c46a4a', opa);
+      o+=alabel(cx, gy+12, lost?"Clifftop houses (lost)":"Clifftop houses", lost?'#b1492f':'#3a3226');
+      if(lost) o+=`<text x="${fx(cx)}" y="${fx(gy-26)}" font-size="15" text-anchor="middle" fill="#b1492f">&#10005;</text>`;
+    }
+    if(s.asset==="town"){
+      // jetty out into the sea, with a moored boat
+      const n=st.g[i].n, jx=pts[i][0], jy=pts[i][1];
+      const exj=jx+n[0]*48, eyj=jy+n[1]*48;
+      o+=`<line x1="${fx(jx)}" y1="${fx(jy)}" x2="${fx(exj)}" y2="${fx(eyj)}" stroke="#8a6d4b" stroke-width="4"/>`;
+      for(let p=1;p<=3;p++){const px=jx+n[0]*12*p, py=jy+n[1]*12*p;
+        o+=`<line x1="${fx(px-3)}" y1="${fx(py)}" x2="${fx(px+3)}" y2="${fx(py)}" stroke="#6f5538" stroke-width="2"/>`;}
+      o+=`<ellipse cx="${fx(exj)}" cy="${fx(eyj-2)}" rx="9" ry="3.6" fill="#33414b"/>`;
+      o+=`<line x1="${fx(exj)}" y1="${fx(eyj-2)}" x2="${fx(exj)}" y2="${fx(eyj-15)}" stroke="#33414b" stroke-width="1.4"/>`;
+      o+=`<path d="M${fx(exj)} ${fx(eyj-14)} L${fx(exj+8)} ${fx(eyj-6)} L${fx(exj)} ${fx(eyj-5)} Z" fill="#e7e2d6"/>`;
+      // township cluster: varied buildings, a hall with a steeple, lit windows
+      const hh=[15,22,13,18,14,20], wl=['#7d7787','#9a6440','#646f78','#86745c','#74707c','#8a5a3c'];
+      for(let k=0;k<6;k++){ const bxk=cx+(k-2.5)*16, h=hh[k];
+        o+=`<rect x="${fx(bxk-6)}" y="${fx(gy-h)}" width="12" height="${fx(h)}" fill="${wl[k]}"/>`;
+        o+=`<path d="M${fx(bxk-7)} ${fx(gy-h)} L${fx(bxk)} ${fx(gy-h-6)} L${fx(bxk+7)} ${fx(gy-h)} Z" fill="#46414c"/>`;
+        o+=`<rect x="${fx(bxk-3.2)}" y="${fx(gy-h+3)}" width="2.4" height="2.4" fill="#ffe7a8"/><rect x="${fx(bxk+0.8)}" y="${fx(gy-h+3)}" width="2.4" height="2.4" fill="#ffe7a8"/>`;
+      }
+      // town hall steeple in the middle
+      o+=`<line x1="${fx(cx-0.5)}" y1="${fx(gy-22)}" x2="${fx(cx-0.5)}" y2="${fx(gy-34)}" stroke="#46414c" stroke-width="2"/>`;
+      o+=`<rect x="${fx(cx-3)}" y="${fx(gy-39)}" width="5" height="5" fill="#cf8336"/>`;
+      o+=alabel(cx, gy+12, "Wattle Bay township", '#3a3226');
+    }
   });
-  // measure badges + click hotspots + labels
+  // measure badges + click hotspots + node labels
   st.seg.forEach((s,i)=>{const x=pts[i][0], y=pts[i][1];
     if(st.meas[i]!=="none"){o+=`<circle cx="${x.toFixed(1)}" cy="${(y-16).toFixed(1)}" r="11" fill="#cf8336" stroke="#fff" stroke-width="2"/>`+
        `<text x="${x.toFixed(1)}" y="${(y-12).toFixed(1)}" font-size="12" text-anchor="middle" fill="#fff" font-weight="700">${D.STRAT[st.meas[i]].letter}</text>`;}
     if(sel===i) o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="17" fill="none" stroke="#cf8336" stroke-width="2.5"/>`;
     o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="18" fill="#000" opacity="0" style="cursor:pointer" onclick="selectSeg(${i})"/>`;
-    o+=`<text x="${x.toFixed(1)}" y="${(y+ (s.cliff?-30:54)).toFixed(1)}" font-size="9.5" text-anchor="middle" fill="#3a566b">${i}</text>`;
+    o+=`<text x="${x.toFixed(1)}" y="${(y+ (s.cliff?-30:-26)).toFixed(1)}" font-size="9.5" text-anchor="middle" fill="#3a566b">${i}</text>`;
   });
   // stakeholder focus highlight
   if(stake){const v=D.VOICES.find(x=>x.id===stake);
@@ -272,12 +324,9 @@ function renderStake(){
   const v=D.VOICES.find(x=>x.id===st.stake);
   $("stakeConcern").innerHTML = v? `<span style="color:${v.colour}">&#9679;</span> ${v.concern}` : "";
   const sp=$("stakePanel");
-  if(!v){
-    sp.innerHTML=`<p class="lead" style="margin:10px 0 0">Pick a stakeholder to see the coast through their eyes.</p>`;
-    return;
-  }
+  if(!v){ sp.innerHTML=`<p class="lead" style="margin:10px 0 0">Pick a stakeholder above to see the coast through their eyes, and what they want from your plan.</p>`; return; }
   const goalItems=v.goals.map(g=>`<li>${g}</li>`).join("");
-  sp.innerHTML=`<div class="stakeview" style="border-left-color:${v.colour}"><div class="sv-name" style="color:${v.colour}">${v.name}: ${v.role}</div><p>${v.view}</p><ul>${goalItems}</ul></div>`;
+  sp.innerHTML=`<div class="stakeview" style="border-left-color:${v.colour}"><div class="sv-name" style="color:${v.colour}">${v.name}: ${v.role}</div><p>${v.view}</p><div class="gh">What they want</div><ul>${goalItems}</ul></div>`;
 }
 function setStake(id){ st.stake = st.stake===id? null : id; renderStake(); redraw(); }
 
@@ -305,8 +354,8 @@ function renderChooser(){
     return `<button class="sbtn${on}${lock}" onclick="${built&&k!==st.meas[sel]?'':`setMeasure('${k}')`}">${D.STRAT[k].name}${cost}</button>`;
   }).join("");
   const cur=D.STRAT[st.meas[sel]];
-  ch.innerHTML=`<h3>${sel} · ${s.name}</h3>
-    <div class="lead" style="margin:0 0 4px">${s.cliff?"Cliff":"Sandy coast"} · wave energy ${eff} · ${s.soft>0.5?"soft rock (erodes fast)":s.soft<0.2?"hard rock":"medium rock"}${s.asset?` · protects the ${s.asset}`:""}</div>
+  ch.innerHTML=`<h3>${sel} &middot; ${s.name}</h3>
+    <div class="lead" style="margin:0 0 4px">${s.cliff?"Cliff":"Sandy coast"} &middot; wave energy ${eff} &middot; ${s.soft>0.5?"soft rock (erodes fast)":s.soft<0.2?"hard rock":"medium rock"}${s.asset?` &middot; protects the ${s.asset}`:""}</div>
     <div class="stratgrid">${opts}</div>
     <div class="advdis"><span class="a">+ ${cur.adv}</span><br><span class="d">&minus; ${cur.dis}</span></div>
     <div id="budgetMsg" style="color:var(--no);font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;min-height:16px;margin-top:3px"></div>
@@ -314,18 +363,14 @@ function renderChooser(){
 }
 function setMeasure(k){
   const test=[...st.meas]; test[sel]=k;
-  const newSpend=computeSpend(test);
-  if(newSpend>C.BUDGET){
-    const msg=$("budgetMsg"); if(msg) msg.textContent="Over budget. Remove or swap a measure first.";
-    return;
-  }
-  st.meas[sel]=k; st.spend=newSpend;
+  if(computeSpend(test)>C.BUDGET){ const msg=$("budgetMsg"); if(msg) msg.textContent="Over budget. Remove or swap a measure first."; return; }
+  st.meas[sel]=k; st.spend=computeSpend();
   renderChooser(); redraw(); renderBudget();
 }
 function renderApps(){$("apps").innerHTML=D.APPS.map(a=>{const v=st.apps[a.id], lock=phase===2;
   const b=(val,cls,label)=>`<button class="${cls}${v===val?' on':''}${lock?' locked':''}" onclick="${lock?'':`setApp('${a.id}','${val}')`}">${label}</button>`;
   return `<div class="app"><h3>${a.name}</h3><p>${a.brief}</p><div class="toggle">
-    ${b('approve','approve','Approve')}${b('conditions','cond','With conditions')}${b('reject','reject','Reject')}</div></div>`;}).join("");}
+    ${b('approve','approve','Approve')}${b('reject','reject','Reject')}</div></div>`;}).join("");}
 function setApp(id,val){st.apps[id]=val; renderApps();}
 function mkRng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function doRun(years,label){
@@ -339,13 +384,31 @@ function doRun(years,label){
   $("review").innerHTML=h; redraw(); renderChooser(); renderApps();
 }
 function runPhase1(){
-  if(Object.values(st.apps).some(v=>!v)){ $("phaseNote").textContent="Rule on every application first (Applications tab), then run."; return; }
+  if(Object.values(st.apps).some(v=>!v)){ $("phaseNote").textContent="Rule on every application first (approve or reject each one below), then run."; return; }
   doRun(10,"After the first decade"); phase=2; $("p1btn").style.display="none"; $("p2wrap").style.display="block";
   $("phaseNote").textContent="Phase 2: adjust your measures and run on. Approvals are locked, and hard structures already built cannot be removed."; renderApps(); renderChooser();}
-function runPhase2(){doRun(20,"After thirty years"); $("p2btn").disabled=true; $("reflect").style.display="block";}
-function setView(v){document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.v===v));
-  document.querySelectorAll(".view").forEach(w=>w.classList.toggle("on",w.id==="v-"+v));}
-function init(){st=Sim.initState(); redraw(); renderStake(); renderApps(); renderBudget();}
+function runPhase2(){doRun(20,"After thirty years"); $("p2btn").disabled=true;}
+function drawQs(){
+  $("qArea").innerHTML=D.Q.map(q=>
+    `<div class="saq"><div class="tie">${q.tie}</div><p class="q">${q.n}. ${q.q}</p>`+
+    `<textarea id="ta${q.n}" placeholder="Write your answer..."></textarea>`+
+    `<div class="saqrow"><button class="cbtn" onclick="checkA(${q.n})">Check my answer</button><span class="wc" id="wc${q.n}">0 words</span></div>`+
+    `<div class="sc" id="sc${q.n}"></div></div>`).join("");
+  D.Q.forEach(q=>{const ta=$("ta"+q.n); if(ta) ta.addEventListener('input',()=>{const t=ta.value.trim();const n=t?t.split(/\s+/).length:0;$("wc"+q.n).textContent=n+" word"+(n===1?"":"s");});});
+}
+function checkA(n){
+  const q=D.Q.find(x=>x.n===n), t=($("ta"+n).value||"").toLowerCase(), box=$("sc"+n);
+  box.classList.add("show");
+  if(t.trim().length<30){ box.className="sc show warn"; box.innerHTML="Have a proper go first, then press Check and I will tell you which ideas you have used."; return; }
+  box.className="sc show";
+  const hit=q.lookFor.filter(k=>t.includes(k)), miss=q.lookFor.filter(k=>!t.includes(k));
+  let h=`<div>${q.selfcheck}</div><div style="margin-top:6px"><span class="ok">Ideas you used:</span> ${hit.length?hit.join(", "):"none of the key ideas yet"}.</div>`;
+  if(miss.length) h+=`<div class="miss">You could also bring in: ${miss.slice(0,6).join(", ")}.</div>`;
+  else h+=`<div class="ok" style="margin-top:3px">Good range of ideas. Now make sure each one is explained, not just named.</div>`;
+  h+=`<div style="margin-top:6px;color:var(--muted)">This checks which ideas you used, not whether your reasoning is correct.</div>`;
+  box.innerHTML=h;
+}
+function init(){st=Sim.initState(); redraw(); renderStake(); renderApps(); renderBudget(); drawQs();}
 if(typeof document!=="undefined") init();
 """
 
@@ -355,14 +418,10 @@ HTML = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <header><h1>{DATA['META']['title']}</h1><div class="sub">{DATA['META']['subtitle']}</div></header>
 <div class="wrap">
 <div class="intro">{DATA['META']['intro']}</div>
-<div class="tabs">
-<div class="tab on" data-v="map" onclick="setView('map')">The coast</div>
-<div class="tab" data-v="apps" onclick="setView('apps')">Applications</div>
-</div>
-<div id="v-map" class="view on">
+
 <div class="panel">
-<h2 class="sec">Wattle Bay</h2>
-<p class="lead">{DATA['META']['driftNote']} The arrows are the waves; they bend toward the coast and hit the headland hardest. Pick a stakeholder to see the coast through their eyes. Tap a point on the coast to read it and place a measure.</p>
+<h2 class="sec"><span class="stepn">1</span>Read the coast through each stakeholder</h2>
+<p class="lead">{DATA['META']['driftNote']} The arrows are the waves; they bend toward the coast and hit the headland hardest. Pick a stakeholder to see the coast through their eyes, then tap a point on the coast to read it and place a measure.</p>
 <div id="stakeBar" class="stakebar"></div>
 <div id="stakeConcern" class="concern"></div>
 <div class="mapwrap"><div id="map"></div></div>
@@ -372,25 +431,35 @@ HTML = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <span><i class="sw" style="background:#7a9b5e"></i>dunes</span>
 <span><i class="sw" style="background:#d7cfb8"></i>land / cliff</span>
 <span><i class="sw" style="background:#3d7fb8"></i>river mouth</span>
+<span><i class="sw" style="background:#8a5a3c"></i>town &amp; buildings</span>
 <span><i class="sw" style="background:#cf8336"></i>your measure</span>
 </div>
 <div id="stakePanel"></div>
 <div id="budgetRow" class="budget-row"></div>
 <div class="chooser" id="chooser"></div>
 </div>
+
 <div class="panel">
+<h2 class="sec"><span class="stepn">2</span>Rule on the development applications</h2>
+<p class="lead">Approve or reject each one. Every approval brings money and jobs to the area, and a pressure on the coast. Read the stakeholders first.</p>
+<div id="apps"></div>
+</div>
+
+<div class="panel">
+<h2 class="sec"><span class="stepn">3</span>Run the decades</h2>
 <p class="note" id="phaseNote">Phase 1: rule on the applications, place your measures, then run the first decade.</p>
 <button class="run" id="p1btn" onclick="runPhase1()">Run the first decade (10 years)</button>
 <div id="p2wrap" style="display:none"><button class="run" id="p2btn" onclick="runPhase2()">Run to thirty years</button></div>
 <div class="review" id="review"></div>
 <button class="btn2" onclick="downloadReport()">Download the plan</button>
-<div id="reflect" style="display:none">
-<p class="note">Some houses at Wattle Bay were built dangerously close to the cliff. Using what just happened, what advice would you give planners, builders and buyers? (about 25 words)</p>
-<textarea placeholder="Your advice..."></textarea></div>
 </div>
+
+<div class="panel">
+<h2 class="sec"><span class="stepn">4</span>Explain your plan like a geographer</h2>
+<p class="lead">Use the evidence you explored and what happened when you ran the decades. The check button tells you which ideas you used, not whether your reasoning is right.</p>
+<div id="qArea"></div>
 </div>
-<div id="v-apps" class="view"><div class="panel"><h2 class="sec">Development applications</h2>
-<p class="lead">Approve or reject each. Every approval is money for the area and a pressure on the coast.</p><div id="apps"></div></div></div>
+
 </div><script>{JS.replace('__DATA__', DATA_JSON)}</script></body></html>"""
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
