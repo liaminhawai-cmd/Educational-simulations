@@ -17,8 +17,8 @@ META = {
   "subtitle": "Year 7 Geography · Coasts · a living coastline",
   "intro": ("You look after Wattle Bay, a made-up coast. Waves roll in from the open ocean (the arrows). "
             "Where they hit straight on, like the headland, they wear it away fast. Where the bay shelters "
-            "them, they drop their sand and the beach grows. Work through the tabs: read the coast, choose "
-            "where new houses can go, protect the coast, then run the years and see what happens."),
+            "them, they drop their sand and the beach grows. Decide where new houses can go, protect the "
+            "coast, then run the years ten at a time and watch what your three advisers think."),
   "driftNote": "Waves push sand left to right along the shore (longshore drift). The headland and the bay change how hard the waves hit.",
 }
 
@@ -28,7 +28,7 @@ META = {
 #  asset: None/"road"/"houses"/"town"                cliff: erodes by retreat (vs sandy)
 SEGMENTS = [
   {"id":0, "name":"Wattle Head",        "bx":55, "by":132,"soft":0.05,"energy":0.95,"sand":0.00,"dune":0.0,"asset":None,    "cliff":True, "kind":"headland"},
-  {"id":1, "name":"The Shoulder",       "bx":138,"by":190,"soft":0.50,"energy":0.82,"sand":0.03,"dune":0.0,"asset":None,    "cliff":True, "kind":"cliff"},
+  {"id":1, "name":"The Shoulder",       "bx":138,"by":190,"soft":0.72,"energy":0.82,"sand":0.03,"dune":0.0,"asset":None,    "cliff":True, "kind":"cliff"},
   {"id":2, "name":"Cliff Road",         "bx":215,"by":238,"soft":0.80,"energy":0.78,"sand":0.05,"dune":0.0,"asset":"road",  "cliff":True, "kind":"cliff"},
   {"id":3, "name":"Clifftop houses",    "bx":300,"by":255,"soft":0.85,"energy":0.75,"sand":0.05,"dune":0.0,"asset":"houses","cliff":True, "kind":"cliff"},
   {"id":4, "name":"The Steps",          "bx":378,"by":228,"soft":0.40,"energy":0.68,"sand":0.02,"dune":0.0,"asset":None,    "cliff":True, "kind":"headland"},
@@ -88,9 +88,9 @@ VOICES = [
 ]
 
 VOICE_LINES = {
-  "owners":{"good":"The river mouth was kept clean and undisturbed, and we were consulted before any work. Stepping back where it made sense respects how this Country has always been cared for. This is what good process looks like.",
-            "mixed":"Some of the work near the river mouth concerns us, and we were not always brought in early enough. The site is holding for now, but keep us at the table before the next round of decisions.",
-            "bad":"Disturbance has reached a site that should have been protected, and decisions were made without our consent or knowledge. This is exactly the harm we asked you to avoid, and money cannot undo it."},
+  "owners":{"good":"The river mouth was kept healthy, with sand still reaching it and no hard walls forced onto the significant site. Caring for this place this way respects how this Country has always been looked after.",
+            "mixed":"The river mouth is holding on, but the natural sand reaching it has thinned. Keep the significant site in mind before the next round of work, and keep hard structures away from it.",
+            "bad":"The river mouth, a significant site, has been damaged -- starved of its sand or walled off. This is the harm we asked you to avoid, and it cannot simply be undone."},
   "eco":{"good":"The dune plants are holding the sand, the estuary is healthy and the beach is doing its natural job as a defence. Wildlife still has somewhere to live. This is a coast working with nature, not against it.",
          "mixed":"It is a mixed picture. Some habitat is hanging on, but a few choices are putting pressure on the dunes or the estuary, and the system is less resilient than it was.",
          "bad":"The dunes are breaking down and the estuary is in trouble. Hard structures have cut the natural sand supply and stripped the life out of this coast. Recovery will take decades, if it comes at all."},
@@ -127,6 +127,8 @@ CONST = {
   "STORM_LOSS":0.05,
   "NOURISH":0.06, "NOURISH_WEAR":0.5,
   "SUPPLY":0.30,      # fraction of updrift-end capacity entering as new sand
+  "EXPORT_SCALE":0.35,  # how much sand actually leaves the downdrift end each year (lower = estuary stays fed)
+  "DRIFT_FLOOR":0.18,   # minimum along-coast drift where the shore turns away from the swell (keeps sand reaching the estuary)
   "FOCUS_LO":0.75, "FOCUS_HI":1.30,  # curvature focusing range (concave bay defocuses, convex head focuses)
   "OFF_SAND":34, "OFF_RET":70,       # render: pixels the shoreline moves per unit sand / retreat
   "BEACH_LOST":0.12,  # beachfront homes are lost if beach sand drops below this

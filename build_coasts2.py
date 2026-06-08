@@ -11,82 +11,87 @@ DATA = {"META":DC.META,"SWELL":DC.SWELL,"SEG":DC.SEGMENTS,"STRAT":DC.STRATEGIES,
 DATA_JSON = json.dumps(DATA, ensure_ascii=False)
 
 CSS = r"""
-:root{--ink:#23202b;--muted:#6f6a78;--line:#e3e0e8;--paper:#fff;--bg:#f3f1f5;
---amber:#cf8336;--blue:#3d7fb8;--ok:#3a8a4e;--okb:#e7f1e8;--no:#b1492f;--nob:#f6e3de;--accent:#3a566b;}
+:root{--ink:#23202b;--muted:#6f6a78;--line:#e3e0e8;--paper:#fff;--bg:#eef0f3;
+--amber:#cf8336;--blue:#3d7fb8;--ok:#3a8a4e;--okb:#e7f1e8;--no:#b1492f;--nob:#f6e3de;--accent:#3a566b;--neutral:#c9c6d0;}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);line-height:1.5;font-family:"Iowan Old Style",Palatino,Georgia,serif;font-size:15px;display:flex;flex-direction:column;overflow:hidden}
-header{background:#1d2a33;color:#fff;padding:9px 18px;display:flex;align-items:baseline;gap:14px;flex:0 0 auto}
+header{background:#1d2a33;color:#fff;padding:8px 18px;display:flex;align-items:baseline;gap:14px;flex:0 0 auto;border-bottom:4px solid var(--amber)}
 header h1{margin:0;font-size:18px}
 header .sub{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10.5px;color:#a9c2d0;text-transform:uppercase;letter-spacing:.08em}
-.tabbar{display:flex;gap:4px;background:#13202a;padding:0 12px;flex:0 0 auto;border-bottom:4px solid var(--amber)}
-.tab{cursor:pointer;font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:600;color:#9fb6c4;background:none;border:none;padding:10px 16px;border-radius:8px 8px 0 0}
-.tab:hover{color:#fff}
-.tab.on{background:var(--bg);color:var(--ink)}
-.stage{flex:1 1 auto;display:flex;gap:12px;padding:12px;min-height:0;overflow:hidden}
-.mapcol{flex:1.55 1 0;min-width:0;min-height:0;display:flex;flex-direction:column;gap:6px}
-.concern{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;color:var(--ink);min-height:17px;flex:0 0 auto}
+.game-wrap{flex:1 1 auto;display:flex;gap:12px;padding:12px;min-height:0;overflow:hidden}
+/* ---- map column ---- */
+.mapcol{flex:1.7 1 0;min-width:0;min-height:0;display:flex;flex-direction:column;gap:6px}
+.hint{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;color:var(--ink);min-height:17px;flex:0 0 auto}
 .mapwrap{flex:1 1 auto;min-height:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#bcd9e6;display:flex}
 svg{display:block;width:100%;height:100%}
-.legend{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:6px 13px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:11px;color:var(--muted)}
+.legend{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:5px 13px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:4px}.sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid #0002}
-.sidecol{flex:1 1 0;min-width:330px;max-width:440px;min-height:0;overflow-y:auto;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px}
-.stage.full .mapcol{display:none}
-.stage.full .sidecol{max-width:none}
-h2.sec{font-size:17px;margin:0 0 4px}
-.lead{font-family:ui-sans-serif,system-ui,sans-serif;color:var(--muted);font-size:12.5px;margin:0 0 10px}
+/* ---- right column ---- */
+.rightcol{flex:1 1 0;min-width:340px;max-width:460px;min-height:0;display:flex;flex-direction:column;gap:10px}
+.chars{flex:0 0 auto;display:flex;flex-direction:column;gap:7px}
+.char-card{cursor:pointer;position:relative;background:var(--paper);border:1px solid var(--line);border-left:6px solid var(--neutral);border-radius:9px;padding:8px 11px;transition:box-shadow .15s,transform .1s}
+.char-card:hover{box-shadow:0 2px 8px #0001}
+.char-card.on{box-shadow:0 0 0 2px var(--accent)}
+.cc-top{display:flex;align-items:center;gap:8px}
+.cc-face{width:30px;height:30px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px}
+.cc-name{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:700;flex:1 1 auto}
+.cc-mood{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;border-radius:11px;padding:2px 9px}
+.cc-line{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--ink);margin:6px 0 0;line-height:1.4}
+/* ---- action panel ---- */
+.action{flex:1 1 auto;min-height:0;overflow-y:auto;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:12px}
+.budget-row{display:flex;align-items:center;gap:10px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;padding:7px 10px;background:#f7fafb;border:1px solid var(--line);border-radius:6px;margin:0 0 10px}
+.budget-bar-wrap{flex:1;height:8px;background:#e3e0e8;border-radius:4px;overflow:hidden}
+.budget-bar-fill{height:100%;border-radius:4px;transition:width .25s}
+.pickhint{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;color:var(--muted);background:#f7fafb;border:1px dashed var(--line);border-radius:8px;padding:12px;margin-bottom:10px;text-align:center}
+.spot{position:relative;border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:10px;overflow:hidden}
+.spot.house.on{border-color:var(--ok);background:#f4faf5}
+.spot-h{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:700;margin-bottom:7px}
+.spot-sub{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--muted);margin:8px 0 4px}
+.eng-box{border-left:3px solid var(--blue);background:#eef5f9;border-radius:0 6px 6px 0;padding:7px 11px;margin-bottom:4px}
+.eng-who{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--blue)}
+.eng-box p{margin:3px 0 0;font-size:13px}
 .stratgrid{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
 .sbtn{cursor:pointer;font-family:ui-sans-serif,system-ui,sans-serif;border:1px solid var(--line);background:#fff;border-radius:16px;padding:6px 11px;font-size:12.5px}
 .sbtn.on{background:#fbf1e4;border-color:var(--amber);font-weight:600}.sbtn.locked{opacity:.45;cursor:not-allowed}
 .advdis{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;margin-top:4px}.advdis .a{color:var(--ok)}.advdis .d{color:var(--no)}
-@keyframes stampDown{0%{transform:rotate(-20deg) scale(2.6);opacity:0}55%{transform:rotate(5deg) scale(.92);opacity:1}78%{transform:rotate(-2deg) scale(1.05)}100%{transform:rotate(-5deg) scale(1);opacity:.92}}
-.house-row{position:relative;border:1px solid var(--line);border-radius:8px;padding:11px 13px;margin-bottom:10px;overflow:hidden}
-.house-row.on{border-color:var(--ok);background:#f4faf5}
-.house-row h3{font-family:ui-sans-serif,system-ui,sans-serif;font-size:14px;margin:0 0 3px}
-.house-row p{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--muted);margin:0 0 8px}
-.house-row .bonus{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--ok);font-weight:700;margin-bottom:8px}
+.bmsg{color:var(--no);font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;min-height:0;margin-top:3px}
+.bonus{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--ok);font-weight:700;margin:6px 0}
+.risknote{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11.5px;font-weight:700;border-radius:6px;padding:5px 9px;margin-bottom:9px;display:inline-block}
+.risknote.cliff{background:var(--nob);color:var(--no)}.risknote.beach{background:#fbe6cf;color:#9a5a16}.risknote.safe{background:var(--okb);color:var(--ok)}
 .hbtn{cursor:pointer;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:7px;padding:7px 14px}
-.hbtn.off{background:#fff;color:var(--accent)}
-.hbtn.locked{opacity:.4;cursor:not-allowed}
-.stamp-mark{position:absolute;top:10px;right:12px;transform-origin:top right;pointer-events:none;font-family:ui-sans-serif,system-ui,sans-serif;font-size:16px;font-weight:900;letter-spacing:.12em;padding:3px 10px;border-radius:3px;border:3px solid var(--ok);color:var(--ok);background:rgba(58,138,78,.07);animation:stampDown .4s cubic-bezier(.2,.6,.3,1) forwards}
-button.run{font-family:ui-sans-serif,system-ui,sans-serif;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:7px;padding:10px 16px;font-size:14px;font-weight:600}button.run:disabled{opacity:.4;cursor:not-allowed}
-.voice{border-left:3px solid var(--line);padding:7px 11px;margin-bottom:8px;background:#fafafa}
-.voice.eng{border-left-color:var(--accent)}.voice.good{border-left-color:var(--ok)}.voice.mixed{border-left-color:var(--amber)}.voice.bad{border-left-color:var(--no)}
-.voice .who{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}.voice p{margin:2px 0 0;font-size:13.5px}
+.hbtn.off{background:#fff;color:var(--accent)}.hbtn.locked{opacity:.4;cursor:not-allowed}
+@keyframes stampDown{0%{transform:rotate(-20deg) scale(2.6);opacity:0}55%{transform:rotate(5deg) scale(.92);opacity:1}78%{transform:rotate(-2deg) scale(1.05)}100%{transform:rotate(-5deg) scale(1);opacity:.92}}
+.stamp-mark{position:absolute;top:10px;right:12px;transform-origin:top right;pointer-events:none;font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:900;letter-spacing:.12em;padding:3px 10px;border-radius:3px;border:3px solid var(--ok);color:var(--ok);background:rgba(58,138,78,.07);animation:stampDown .4s cubic-bezier(.2,.6,.3,1) forwards}
+.runbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 4px}
+.decades{display:flex;align-items:center;gap:6px}
+.dot{width:13px;height:13px;border-radius:50%;background:#dcd9e2;border:2px solid #c4c0cc;display:inline-block}
+.dot.done{background:var(--amber);border-color:var(--amber)}
+.dlabel{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:700;color:var(--muted)}
+button.run{font-family:ui-sans-serif,system-ui,sans-serif;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:7px;padding:10px 18px;font-size:14px;font-weight:700}button.run:disabled{opacity:.4;cursor:not-allowed}
+.note{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--muted);margin-top:6px}
+.review{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
 .bigtrouble{border:2px solid var(--no);background:var(--nob);color:var(--no);border-radius:8px;padding:9px 12px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:600;margin-bottom:9px}
 .stamp{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;font-weight:700;color:var(--accent);margin:2px 0 8px}
-.note{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--muted);margin-top:6px}
-textarea{width:100%;min-height:60px;font:inherit;font-size:13.5px;padding:8px;border:1px solid var(--line);border-radius:6px;resize:vertical;margin-top:6px}
-.stakebar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-.skbtn{cursor:pointer;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;border:1px solid var(--line);background:#fff;border-radius:16px;padding:6px 11px;color:var(--muted)}
-.skbtn.on{font-weight:700}
-.stakeview{border-left:3px solid var(--line);padding:9px 12px;background:#fafafa;margin-top:8px;border-radius:0 6px 6px 0}
-.stakeview .sv-name{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
-.stakeview p{margin:5px 0 6px;font-size:13.5px}
-.stakeview .gh{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin:2px 0 3px}
-.stakeview ul{margin:0;padding-left:18px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px}
-.stakeview li{margin-bottom:2px}
-.budget-row{display:flex;align-items:center;gap:10px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;padding:7px 10px;background:#f7fafb;border:1px solid var(--line);border-radius:6px;margin:8px 0}
-.budget-bar-wrap{flex:1;height:8px;background:#e3e0e8;border-radius:4px;overflow:hidden}
-.budget-bar-fill{height:100%;border-radius:4px;transition:width .25s}
-.chooser{border:1px dashed var(--accent);border-radius:7px;padding:11px 13px;background:#f7fafb;margin-bottom:8px}
-.chooser h3{font-family:ui-sans-serif,system-ui,sans-serif;font-size:14px;margin:0 0 6px}
+.btn2{font-family:ui-sans-serif,system-ui,sans-serif;cursor:pointer;border:1px solid var(--accent);background:#fff;color:var(--accent);border-radius:7px;padding:8px 13px;font-size:13px;font-weight:600;margin-top:6px}
+.reflect-toggle{cursor:pointer;width:100%;text-align:left;font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:700;color:var(--accent);background:#f3f6f8;border:1px solid var(--line);border-radius:7px;padding:9px 12px;margin-top:12px}
+.reflect{margin-top:8px}
 .saq{border:1px solid var(--line);border-radius:7px;padding:11px 13px;margin-bottom:10px;background:#fff}
 .saq .tie{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:4px}
 .saq .q{font-size:14px;margin:0 0 6px}
+textarea{width:100%;min-height:58px;font:inherit;font-size:13.5px;padding:8px;border:1px solid var(--line);border-radius:6px;resize:vertical;margin-top:6px}
 .saqrow{display:flex;align-items:center;gap:10px;margin-top:7px}
 .cbtn{font-family:ui-sans-serif,system-ui,sans-serif;cursor:pointer;background:#eef1f4;border:1px solid var(--line);border-radius:6px;padding:7px 13px;font-size:12.5px;font-weight:600;color:var(--ink)}
 .wc{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:var(--muted)}
 .sc{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;margin-top:9px;padding:9px 11px;border-radius:6px;background:#f7fafb;border:1px solid var(--line);display:none}
 .sc.show{display:block}.sc.warn{background:#fdeccd}
 .sc .miss{color:var(--no);margin-top:3px}.sc .ok{color:var(--ok)}
-.btn2{font-family:ui-sans-serif,system-ui,sans-serif;cursor:pointer;border:1px solid var(--accent);background:#fff;color:var(--accent);border-radius:7px;padding:8px 13px;font-size:13px;font-weight:600;margin-top:10px}
-@media(max-width:860px){
+@media(max-width:880px){
   body{overflow:auto}
-  .stage{flex-direction:column;overflow:visible;height:auto}
-  .mapcol{min-height:60vh}
-  .sidecol{max-width:none;overflow:visible}
-  .stage.full .mapcol{display:flex}
+  .game-wrap{flex-direction:column;overflow:visible;height:auto}
+  .mapcol{min-height:58vh}
+  .rightcol{max-width:none}
+  .action{overflow:visible}
 }
 """
 
@@ -144,7 +149,8 @@ function stepYear(st, stormR){
   const move=s.map(()=>0);
   for(let i=0;i<N-1;i++){
     const dir=norm([P[i+1][0]-P[i][0], P[i+1][1]-P[i][1]]);
-    const along=dot(SW,dir), Eb=(E[i]+E[i+1])/2;
+    let along=dot(SW,dir); if(along>0) along=Math.max(along,C.DRIFT_FLOOR);   // shore keeps feeding sand east even where it turns away
+    const Eb=(E[i]+E[i+1])/2;
     let Q=C.KFLUX*Eb*along;
     if(Q>0 && m[i]==="groyne") Q*=0.2;
     if(Q<0 && m[i+1]==="groyne") Q*=0.2;
@@ -152,7 +158,7 @@ function stepYear(st, stormR){
     else   {const amt=Math.min(-Q, s[i+1].sand*C.MOVEFRAC); move[i+1]-=amt; move[i]+=amt;}
   }
   move[0]+=C.KFLUX*E[0]*C.SUPPLY;
-  move[N-1]-=Math.min(C.KFLUX*E[N-1]*Math.max(dot(SW,norm([P[N-1][0]-P[N-2][0],P[N-1][1]-P[N-2][1]])),0), s[N-1].sand*C.MOVEFRAC);
+  move[N-1]-=C.EXPORT_SCALE*Math.min(C.KFLUX*E[N-1]*Math.max(dot(SW,norm([P[N-1][0]-P[N-2][0],P[N-1][1]-P[N-2][1]])),0), s[N-1].sand*C.MOVEFRAC);
   for(let i=0;i<N;i++){
     s[i].sand+=move[i];
     if(m[i]==="nourish") s[i].sand+=C.NOURISH-C.NOURISH*C.NOURISH_WEAR;
@@ -183,11 +189,16 @@ function outcome(st){
   const housesLost=(clifftopLost?1:0)+(beachLost?1:0);
   return {beach,dunes,assetsLost,estuary,walled,startBeach:START_BEACH,clifftopLost,beachLost,housesLost};
 }
-function voiceStates(st,o){return{
-  owners:(o.estuary>=0.28)?"good":(o.estuary<0.15)?"bad":"mixed",
-  eco:(o.dunes>=0.45&&o.estuary>=0.28)?"good":(o.dunes<0.25||o.estuary<0.15)?"bad":"mixed",
-  town:(o.beach>=0.8*o.startBeach&&o.assetsLost===0&&o.walled<=2)?"good":(o.beach<0.5*o.startBeach||o.assetsLost>0)?"bad":"mixed",
-};}
+function voiceStates(st,o){
+  const hard=st.meas.filter(x=>x==="seawall"||x==="groyne").length;
+  const wallEstuary=[7,8].some(i=>st.meas[i]==="seawall"||st.meas[i]==="groyne"); // hard structure on the township / river-mouth
+  const sb=o.startBeach;
+  return{
+    owners:(wallEstuary||o.estuary<0.20)?"bad":(o.estuary>=0.30)?"good":"mixed",
+    eco:(o.dunes>=0.45&&hard<=1&&o.estuary>=0.25)?"good":(o.dunes<0.25||hard>=4||o.estuary<0.15)?"bad":"mixed",
+    town:(o.beach>=0.70*sb&&o.assetsLost===0&&hard<=3)?"good":(o.beach<0.50*sb||o.assetsLost>0)?"bad":"mixed",
+  };
+}
 function engineerText(st,o){
   const s=st.seg, b=[];
   const dB=o.beach-o.startBeach;
@@ -375,8 +386,8 @@ function drawSVG(st, sel, stake){
   st.seg.forEach((s,i)=>{const x=pts[i][0], y=pts[i][1];
     if(st.meas[i]!=="none"){o+=`<circle cx="${x.toFixed(1)}" cy="${(y-16).toFixed(1)}" r="11" fill="#cf8336" stroke="#fff" stroke-width="2"/>`+
        `<text x="${x.toFixed(1)}" y="${(y-12).toFixed(1)}" font-size="12" text-anchor="middle" fill="#fff" font-weight="700">${D.STRAT[st.meas[i]].letter}</text>`;}
-    if(sel===i) o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="17" fill="none" stroke="#cf8336" stroke-width="2.5"/>`;
-    o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="16" fill="#000" opacity="0" style="cursor:pointer" onclick="clickCoast(${i})"/>`;
+    if(sel===i) o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="23" fill="#cf8336" opacity="0.14"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="23" fill="none" stroke="#cf8336" stroke-width="2.5"/>`;
+    o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="26" fill="#000" opacity="0" style="cursor:pointer" onclick="clickCoast(${i})"/>`;
   });
   // stakeholder focus highlight
   if(stake){const v=D.VOICES.find(x=>x.id===stake);
@@ -389,20 +400,9 @@ function drawSVG(st, sel, stake){
 }
 
 /* ===== UI ===== */
-let st, phase=1, sel=null, tab="coast";
+const TOTAL_DECADES=3;
+let st, sel=null, selHouse=null, decadesRun=0, reflectOpen=false;
 function redraw(){ $("map").innerHTML=drawSVG(st, sel, st.stake); }
-function setTab(t){
-  tab=t;
-  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on', b.dataset.t===t));
-  $("stage").classList.toggle('full', t==='explain');
-  renderSide();
-}
-function renderSide(){
-  if(tab==='coast') renderCoastTab();
-  else if(tab==='houses') renderHousesTab();
-  else if(tab==='protect') renderProtectTab();
-  else if(tab==='explain') renderExplainTab();
-}
 
 function availBudget(){
   return C.BUDGET + D.HOUSING.reduce((a,h)=>a+(houseOn(st,h.id)?(h.bonus||0):0),0);
@@ -415,129 +415,182 @@ function budgetRowHTML(){
   return `<div class="budget-row"><span><strong>Money:</strong> ${rem} of ${avail} left</span><div class="budget-bar-wrap"><div class="budget-bar-fill" style="width:${pct}%;background:${col}"></div></div></div>`;
 }
 
-/* ---- Tab 1: stakeholders ---- */
-function renderCoastTab(){
-  const bar=D.VOICES.map(v=>`<button class="skbtn${st.stake===v.id?' on':''}" style="${st.stake===v.id?`border-color:${v.colour};color:${v.colour}`:''}" onclick="setStake('${v.id}')">${v.name}</button>`).join("");
-  const v=D.VOICES.find(x=>x.id===st.stake);
-  let body;
-  if(!v){ body=`<p class="lead">Tap a person above to see the coast through their eyes. The matching places light up on the map.</p>`; }
-  else{
-    const goals = (v.goals&&v.goals.length)? `<div class="gh">What they want</div><ul>${v.goals.map(g=>`<li>${g}</li>`).join("")}</ul>` : "";
-    body=`<div class="stakeview" style="border-left-color:${v.colour}"><div class="sv-name" style="color:${v.colour}">${v.name}: ${v.role}</div><p>${v.view}</p>${goals}</div>`;
-  }
-  $("side").innerHTML=`<h2 class="sec">Who cares about this coast?</h2><p class="lead">Read each person before you decide anything. They do not all want the same thing.</p><div class="stakebar">${bar}</div>${body}`;
-  updateConcern();
+/* ---- always-visible adviser cards (right column, top) ---- */
+function faceFor(id){return id==="owners"?"\u{1F3DE}\u{FE0F}":id==="eco"?"\u{1F33F}":"\u{1F3D6}\u{FE0F}";}
+function moodBits(m){
+  if(m==="good") return ["happy","var(--ok)"];
+  if(m==="bad") return ["unhappy","var(--no)"];
+  if(m==="mixed") return ["so-so","var(--amber)"];
+  return ["waiting","var(--neutral)"];
 }
-function setStake(id){ st.stake = st.stake===id? null : id; renderCoastTab(); redraw(); }
-function updateConcern(){
-  const v=D.VOICES.find(x=>x.id===st.stake);
-  $("stakeConcern").innerHTML = v? `<span style="color:${v.colour}">&#9679;</span> ${v.concern}` : "Tip: tap a person, then look at where their places light up on the map.";
+function renderChars(){
+  const html=D.VOICES.filter(v=>v.id!=="engineer").map(v=>{
+    const mood=st._vs?st._vs[v.id]:null;
+    const [word,col]=moodBits(mood);
+    const line=mood?D.VLINES[v.id][mood]:v.concern;
+    const on=st.stake===v.id;
+    return `<div class="char-card${on?' on':''}" style="border-left-color:${col}" onclick="setStake('${v.id}')">
+      <div class="cc-top"><span class="cc-face" style="background:${v.colour}22;color:${v.colour}">${faceFor(v.id)}</span>
+        <span class="cc-name">${v.name}</span>
+        <span class="cc-mood" style="background:${col}">${word}</span></div>
+      <p class="cc-line">${line}</p></div>`;
+  }).join("");
+  $("chars").innerHTML=html;
 }
-
-/* ---- Tab 2: houses ---- */
-function renderHousesTab(){
-  const lim=C.APP_LIMIT, n=Sim.approvedCount(st), atLim=n>=lim;
-  let out=`<h2 class="sec">Where can new houses go?</h2>`;
-  out+=`<p class="lead">Tap a house plot on the map (or the buttons below) to approve it. Closer to the water means more money for the council, but more danger of being lost to the waves. You can approve <strong>${lim} of ${D.HOUSING.length}</strong> sites. ${atLim?"You have used both.":(lim-n)+" left."}</p>`;
-  out+=budgetRowHTML();
-  D.HOUSING.forEach(h=>{
-    const on=houseOn(st,h.id), locked=phase===2, blk=!on&&atLim;
-    out+=`<div class="house-row${on?' on':''}">`;
-    out+=`<h3>${h.name}</h3><p>${h.blurb}</p><div class="bonus">+${h.bonus} money if approved</div>`;
-    if(locked){ out+=`<div class="note" style="margin:0">Locked in: ${on?'approved':'not approved'}</div>`; }
-    else if(on){ out+=`<button class="hbtn" onclick="toggleHouse('${h.id}')">Approved &middot; tap to cancel</button>`; }
-    else if(blk){ out+=`<button class="hbtn off locked">Approve (no slots left)</button>`; }
-    else { out+=`<button class="hbtn off" onclick="toggleHouse('${h.id}')">Approve this site</button>`; }
-    if(on) out+=`<div class="stamp-mark">APPROVED</div>`;
-    out+=`</div>`;
-  });
-  $("side").innerHTML=out;
-}
-function toggleHouse(id){
-  if(phase===2) return;
-  if(houseOn(st,id)){ st.apps[id]=null; }
-  else{
-    if(Sim.approvedCount(st)>=C.APP_LIMIT){ setTab('houses'); return; }
-    st.apps[id]="approve";
-  }
-  setTab('houses');   // always show the houses panel so students see the change
-  redraw();
+function setStake(id){ st.stake = st.stake===id? null : id; renderChars(); updateHint(); redraw(); }
+function updateHint(){
+  const v=st.stake&&D.VOICES.find(x=>x.id===st.stake);
+  $("hint").innerHTML = v
+    ? `<span style="color:${v.colour}">&#9679;</span> <b>${v.name}:</b> ${v.concern}`
+    : (decadesRun>=TOTAL_DECADES
+        ? "Thirty years done. See how each adviser feels, then open Reflect like a geographer below."
+        : "Tap a spot on the coast to inspect and protect it. Tap an adviser card to see what they care about.");
 }
 
-/* ---- Tab 3: protect & run ---- */
+/* ---- engineer's plain-language insight for a clicked spot ---- */
 function energyWord(e){return e>0.7?"high":e>0.4?"medium":"low";}
-function renderProtectTab(){
-  let out=`<h2 class="sec">Protect the coast, then run the years</h2>`;
-  out+=`<p class="lead">Tap a spot on the map to see what it is like, then choose a way to protect it. Watch your money.</p>`;
-  out+=budgetRowHTML();
-  // chooser
-  if(sel===null){ out+=`<div class="chooser"><p class="lead" style="margin:0">No spot chosen yet. Tap the coast on the map.</p></div>`; }
-  else{
-    const s=st.seg[sel];
-    const eff=energyWord(s.energyBase*(0.55+0.45*st.g[sel].facing)*st.g[sel].focus);
-    const built=(phase===2 && ["seawall","groyne"].includes(st.meas[sel]));
-    const opts=Object.keys(D.STRAT).map(k=>{
-      const on=st.meas[sel]===k?" on":"";
-      const lock=built&&k!==st.meas[sel]?" locked":"";
-      const cost=D.STRAT[k].cost>0?` (${D.STRAT[k].cost})`:"";
-      return `<button class="sbtn${on}${lock}" onclick="${built&&k!==st.meas[sel]?'':`setMeasure('${k}')`}">${D.STRAT[k].name}${cost}</button>`;
-    }).join("");
-    const cur=D.STRAT[st.meas[sel]];
-    out+=`<div class="chooser"><h3>${s.name}</h3>
-      <div class="lead" style="margin:0 0 4px">${s.cliff?"Cliff":"Sandy coast"} &middot; waves hit ${eff}${s.soft>0.5?" &middot; soft rock (wears fast)":s.soft<0.2?" &middot; hard rock":" &middot; medium rock"}${s.asset?` &middot; has the ${s.asset}`:""}</div>
-      <div class="stratgrid">${opts}</div>
-      <div class="advdis"><span class="a">+ ${cur.adv}</span><br><span class="d">&minus; ${cur.dis}</span></div>
-      <div id="budgetMsg" style="color:var(--no);font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;min-height:15px;margin-top:3px"></div>
-      ${built?'<div class="note">A hard wall is built here and cannot be taken out cheaply.</div>':''}</div>`;
+function nodeEnergyWord(i){return energyWord(st.seg[i].energyBase*(0.55+0.45*st.g[i].facing)*st.g[i].focus);}
+function nodeEngText(i){
+  const s=st.seg[i], ew=nodeEnergyWord(i); let b=[];
+  if(s.kind==="headland"){
+    b.push(`This is a hard-rock headland that sticks out into the sea, so it takes the full force of the waves -- wave energy here is ${ew}. Hard rock barely wears, but a headland bends the waves and throws extra energy onto the softer coast next to it.`);
+  } else if(s.cliff){
+    const rock=s.soft>0.6?"soft rock that wears back fast":s.soft>0.3?"medium-hard rock":"fairly hard rock";
+    b.push(`These are cliffs of ${rock}, and the waves hitting them carry ${ew} energy. With little beach in front to soak up the waves, the cliff keeps wearing back toward the land.`);
+    if(s.asset) b.push(`The ${s.asset==="road"?"road":"houses"} sit right on top, so if the cliff retreats far enough they go over the edge.`);
+    b.push(`A sea wall would hold this cliff but bounce the waves back and scrape away the beach in front. Managed retreat moves things back and lets the shore settle naturally.`);
+  } else if(s.kind==="dune"){
+    b.push(`This is the dune reserve. Plants hold the sand together, so the dunes store it and shield the land behind them. Wave energy here is ${ew}. Strip the plants and the dunes fall apart; nourishment can top the sand up.`);
+  } else if(s.kind==="estuary"){
+    b.push(`This is the river mouth. Sand drifting along the coast keeps the estuary healthy, and it shelters young fish and birds. Wave energy is ${ew}. It is a significant site for the Traditional Owners, so a hard wall here causes real harm.`);
+  } else if(s.kind==="spit"){
+    b.push(`This is a spit -- a finger of sand built up where drifting sand drops past the river mouth. Wave energy is ${ew}. It grows while sand keeps moving along the coast, and shrinks if structures up the coast trap that sand.`);
+  } else if(s.kind==="town"){
+    b.push(`The township sits just behind the beach. Wave energy here is ${ew}. A wide beach is its best protection; lose the beach and the buildings are exposed.`);
+  } else {
+    b.push(`A sandy beach. Wave energy here is ${ew}, so it ${ew==="low"?"tends to collect sand and grow wide":"can lose sand in storms"}. Nourishment adds sand for a wide, tourist-friendly beach, but the new sand keeps washing away and needs topping up.`);
   }
-  // run controls
-  out+=`<p class="note" id="phaseNote">${phase===1?"When you are ready, run the first ten years.":"Adjust your measures, then run on. Houses are locked in now."}</p>`;
-  if(phase===1) out+=`<button class="run" id="p1btn" onclick="runPhase1()">Run 10 years &#9654;</button>`;
-  else out+=`<button class="run" id="p2btn" onclick="runPhase2()"${st.year>=30?' disabled':''}>Run to 30 years &#9654;</button>`;
-  out+=`<div class="review" id="review">${st._reviewHTML||""}</div>`;
-  if(st.year>0) out+=`<button class="btn2" onclick="downloadReport()">Download the plan</button>`;
-  $("side").innerHTML=out;
+  if(!s.cliff){ b.push(s.sand>0.6?"Right now the beach here is wide.":s.sand<0.2?"Right now there is very little sand here.":"Right now the beach here is middling."); }
+  return b.join(" ");
 }
-function clickCoast(i){ sel=i; if(tab!=='protect'){ setTab('protect'); } else { renderProtectTab(); } redraw(); }
+
+/* ---- the action panel (right column, scrolls) ---- */
+function spotHTML(i){
+  const s=st.seg[i];
+  const built=(decadesRun>0 && ["seawall","groyne"].includes(st.meas[i]));
+  const opts=Object.keys(D.STRAT).map(k=>{
+    const on=st.meas[i]===k?" on":"";
+    const lock=built&&k!==st.meas[i]?" locked":"";
+    const cost=D.STRAT[k].cost>0?` (${D.STRAT[k].cost})`:"";
+    return `<button class="sbtn${on}${lock}" onclick="${built&&k!==st.meas[i]?'':`setMeasure('${k}')`}">${D.STRAT[k].name}${cost}</button>`;
+  }).join("");
+  const cur=D.STRAT[st.meas[i]];
+  return `<div class="spot">
+    <div class="spot-h">${s.name}</div>
+    <div class="eng-box"><div class="eng-who">Coastal engineer</div><p>${nodeEngText(i)}</p></div>
+    <div class="spot-sub">Choose how to manage this spot:</div>
+    <div class="stratgrid">${opts}</div>
+    <div class="advdis"><span class="a">+ ${cur.adv}</span><br><span class="d">&minus; ${cur.dis}</span></div>
+    <div id="budgetMsg" class="bmsg"></div>
+    ${built?'<div class="note">A hard wall is built here and cannot be taken out cheaply.</div>':''}
+  </div>`;
+}
+function houseCardHTML(id){
+  const h=D.HOUSING.find(x=>x.id===id), on=houseOn(st,id), locked=decadesRun>0;
+  const atLim=Sim.approvedCount(st)>=C.APP_LIMIT, blk=!on&&atLim;
+  const risk=h.risk==="cliff"?["risknote cliff","High risk: built on the wearing cliff. Protect it or it falls into the sea."]
+            :h.risk==="beach"?["risknote beach","Some risk: only safe while the beach in front stays wide."]
+            :["risknote safe","Safe: set well back from the wearing coast."];
+  let btn;
+  if(locked) btn=`<div class="note" style="margin:0">Locked in: ${on?'approved':'not approved'}</div>`;
+  else if(on) btn=`<button class="hbtn" onclick="toggleHouse('${id}')">Approved &middot; tap to cancel</button>`;
+  else if(blk) btn=`<button class="hbtn off locked">No slots left (max ${C.APP_LIMIT})</button>`;
+  else btn=`<button class="hbtn off" onclick="toggleHouse('${id}')">Approve this site</button>`;
+  return `<div class="spot house${on?' on':''}">
+    <div class="spot-h">${h.name}</div>
+    <p class="cc-line" style="margin-top:0">${h.blurb}</p>
+    <div class="bonus">+${h.bonus} money if approved</div>
+    <div class="${risk[0]}">${risk[1]}</div>
+    <div>${btn}</div>
+    ${on&&!locked?'<div class="stamp-mark">APPROVED</div>':''}
+  </div>`;
+}
+function runHTML(){
+  const done=decadesRun>=TOTAL_DECADES;
+  const dots=Array.from({length:TOTAL_DECADES},(_,k)=>`<span class="dot${k<decadesRun?' done':''}"></span>`).join("");
+  let s=`<div class="runbar"><div class="decades">${dots}<span class="dlabel">${done?"30 years done":`Decade ${decadesRun+1} of ${TOTAL_DECADES}`}</span></div>`;
+  if(!done) s+=`<button class="run" onclick="runDecade()">Run 10 years &#9654;</button>`;
+  s+=`</div>`;
+  if(decadesRun===0) s+=`<p class="note">Set up your plan, then run the first ten years. New housing locks in after that.</p>`;
+  else if(!done) s+=`<p class="note">Adjust your measures, then run the next ten years. Housing is locked in now.</p>`;
+  if(done) s+=`<button class="btn2" onclick="downloadReport()">Download the plan</button>`;
+  return s;
+}
+function reflectHTML(){
+  let s=`<button class="reflect-toggle" onclick="toggleReflect()">${reflectOpen?"▾":"▸"} Reflect like a geographer</button>`;
+  if(reflectOpen){
+    s+=`<div class="reflect">`+D.Q.map(q=>
+      `<div class="saq"><div class="tie">${q.tie}</div><p class="q">${q.n}. ${q.q}</p>`+
+      `<textarea id="ta${q.n}" placeholder="Write your answer...">${st._ans&&st._ans[q.n]||""}</textarea>`+
+      `<div class="saqrow"><button class="cbtn" onclick="checkA(${q.n})">Check my answer</button><span class="wc" id="wc${q.n}">0 words</span></div>`+
+      `<div class="sc" id="sc${q.n}"></div></div>`).join("")+`</div>`;
+  }
+  return s;
+}
+function renderAction(){
+  let out=budgetRowHTML();
+  if(selHouse) out+=houseCardHTML(selHouse);
+  else if(sel!==null) out+=spotHTML(sel);
+  else out+=`<div class="pickhint">Tap the <b>coast</b> to inspect a spot and protect it, or tap a <b>house plot</b> on the map to approve new homes.</div>`;
+  out+=runHTML();
+  if(st._reviewHTML) out+=`<div class="review">${st._reviewHTML}</div>`;
+  out+=reflectHTML();
+  $("action").innerHTML=out;
+  bindReflect();
+}
+function toggleReflect(){ reflectOpen=!reflectOpen; renderAction(); }
+function bindReflect(){
+  if(!reflectOpen) return;
+  D.Q.forEach(q=>{const ta=$("ta"+q.n); if(ta){const upd=()=>{const t=ta.value.trim();const n=t?t.split(/\s+/).length:0;$("wc"+q.n).textContent=n+" word"+(n===1?"":"s");st._ans=st._ans||{};st._ans[q.n]=ta.value;};ta.addEventListener('input',upd);upd();}});
+}
+
+/* ---- interactions ---- */
+function clickCoast(i){ sel=i; selHouse=null; renderAction(); redraw(); }
 function setMeasure(k){
   const test=[...st.meas]; test[sel]=k;
   if(computeSpend(test)>availBudget()){ const msg=$("budgetMsg"); if(msg) msg.textContent="Not enough money. Take out or change another measure first."; return; }
   st.meas[sel]=k; st.spend=computeSpend();
-  renderProtectTab(); redraw();
+  renderAction(); redraw();
+}
+function toggleHouse(id){
+  if(decadesRun>0){ selHouse=id; sel=null; renderAction(); return; }   // locked: just show it
+  if(houseOn(st,id)){ st.apps[id]=null; }
+  else{
+    if(Sim.approvedCount(st)>=C.APP_LIMIT){ selHouse=id; sel=null; renderAction(); return; }
+    st.apps[id]="approve";
+  }
+  selHouse=id; sel=null; renderAction(); redraw();
 }
 
-/* ---- run logic ---- */
+/* ---- run logic: three ten-year decades ---- */
 function mkRng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
-function doRun(years,label){
-  if(phase===1) Sim.applyApprovals(st);
-  Sim.run(st,years,mkRng(4242+st.year));
+function runDecade(){
+  if(decadesRun>=TOTAL_DECADES) return;
+  if(decadesRun===0) Sim.applyApprovals(st);
+  Sim.run(st,10,mkRng(4242+st.year));
+  decadesRun++;
   const o=Sim.outcome(st), vs=Sim.voiceStates(st,o);
+  st._vs=vs;
   let h="";
   if(o.housesLost>0){ h+=`<div class="bigtrouble">Big trouble: ${o.housesLost===1?"a set of new homes has":"new homes have"} been lost to the sea. Building too close to the water has cost the council dearly.</div>`; }
-  h+=`<div class="stamp">${label} (year ${st.year})</div>`;
-  h+=`<div class="voice eng"><div class="who">Coastal engineer</div><p>${Sim.engineerText(st,o)}</p></div>`;
-  D.VOICES.filter(v=>v.id!=="engineer").forEach(v=>{const stt=vs[v.id]; if(!stt) return;
-    h+=`<div class="voice ${stt}"><div class="who">${v.name}</div><p>${D.VLINES[v.id][stt]}</p></div>`;});
+  h+=`<div class="stamp">After ${st.year} years</div>`;
+  h+=`<div class="eng-box"><div class="eng-who">Coastal engineer</div><p>${Sim.engineerText(st,o)}</p></div>`;
+  h+=`<p class="note" style="margin-top:6px">See how your three advisers feel in the cards above.</p>`;
   st._reviewHTML=h;
-  redraw();
+  sel=null; selHouse=null;
+  renderChars(); renderAction(); updateHint(); redraw();
 }
-function runPhase1(){
-  doRun(10,"After the first ten years"); phase=2;
-  renderProtectTab();
-}
-function runPhase2(){ doRun(20,"After thirty years"); renderProtectTab(); }
 
-/* ---- Tab 4: explain ---- */
-function renderExplainTab(){
-  let out=`<h2 class="sec">Explain your plan like a geographer</h2><p class="lead">Use what you saw on the map. The check button tells you which ideas you used, not whether your reasoning is right.</p><div id="qArea"></div>`;
-  $("side").innerHTML=out;
-  $("qArea").innerHTML=D.Q.map(q=>
-    `<div class="saq"><div class="tie">${q.tie}</div><p class="q">${q.n}. ${q.q}</p>`+
-    `<textarea id="ta${q.n}" placeholder="Write your answer...">${st._ans&&st._ans[q.n]||""}</textarea>`+
-    `<div class="saqrow"><button class="cbtn" onclick="checkA(${q.n})">Check my answer</button><span class="wc" id="wc${q.n}">0 words</span></div>`+
-    `<div class="sc" id="sc${q.n}"></div></div>`).join("");
-  D.Q.forEach(q=>{const ta=$("ta"+q.n); if(ta){const upd=()=>{const t=ta.value.trim();const n=t?t.split(/\s+/).length:0;$("wc"+q.n).textContent=n+" word"+(n===1?"":"s");st._ans=st._ans||{};st._ans[q.n]=ta.value;};ta.addEventListener('input',upd);upd();}});
-}
 function checkA(n){
   const q=D.Q.find(x=>x.n===n), t=($("ta"+n).value||"").toLowerCase(), box=$("sc"+n);
   box.classList.add("show");
@@ -561,7 +614,7 @@ function downloadReport(){
   const a=document.createElement("a"); a.href=u; a.download="wattle-bay-plan.txt"; a.click(); URL.revokeObjectURL(u);
 }
 
-function init(){ st=Sim.initState(); redraw(); setTab("coast"); updateConcern(); }
+function init(){ st=Sim.initState(); renderChars(); renderAction(); updateHint(); redraw(); }
 if(typeof document!=="undefined") init();
 """
 
@@ -569,15 +622,9 @@ HTML = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{DATA['META']['title']}</title><style>{CSS}</style></head><body>
 <header><h1>{DATA['META']['title']}</h1><div class="sub">{DATA['META']['subtitle']}</div></header>
-<div class="tabbar">
-  <button class="tab on" data-t="coast" onclick="setTab('coast')">1 &middot; Stakeholders</button>
-  <button class="tab" data-t="houses" onclick="setTab('houses')">2 &middot; Houses</button>
-  <button class="tab" data-t="protect" onclick="setTab('protect')">3 &middot; Protect &amp; run</button>
-  <button class="tab" data-t="explain" onclick="setTab('explain')">4 &middot; Explain</button>
-</div>
-<div class="stage" id="stage">
+<div class="game-wrap">
   <div class="mapcol">
-    <div id="stakeConcern" class="concern"></div>
+    <div id="hint" class="hint"></div>
     <div class="mapwrap"><div id="map" style="width:100%;height:100%"></div></div>
     <div class="legend">
       <span><i class="sw" style="background:#bcd9e6"></i>sea (arrows = waves)</span>
@@ -589,7 +636,10 @@ HTML = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
       <span>&#8226;&#8226;&#8226; old coastline</span>
     </div>
   </div>
-  <div class="sidecol" id="side"></div>
+  <div class="rightcol">
+    <div id="chars" class="chars"></div>
+    <div id="action" class="action"></div>
+  </div>
 </div>
 <script>{JS.replace('__DATA__', DATA_JSON)}</script></body></html>"""
 
