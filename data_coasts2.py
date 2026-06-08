@@ -61,7 +61,7 @@ HOUSING = [
   {"id":"beachfront", "name":"Beachfront homes","node":5, "bonus":12, "risk":"beach",
    "blurb":"Just behind the beach. Good money. Safe only while the beach and dunes stay wide."},
   {"id":"setback",    "name":"Set-back homes",  "node":7, "bonus":5,  "risk":"safe",
-   "blurb":"Back from the shore near the town. Less money, but well away from the wearing coast."},
+   "blurb":"Back from the shore near the town. Safe from the wearing coast, but the block sits right beside the river-mouth significant site."},
 ]
 
 # Each voice has: concern (short line above map), view (paragraph), goals (list shown in panel).
@@ -103,6 +103,7 @@ VOICE_LINES = {
 VOICE_DETAIL = {
   "owners":{
     "respected":"You listened to what we asked for: hard structures kept off the river mouth and the sand still reaching it. Our significant site has been respected.",
+    "setbackBuilt":"New homes have been approved right beside the river-mouth significant site. That land matters to us and development that close changes it.",
     "wallOnSite":"A hard wall has been put right on the river mouth, our significant site. That should never have happened.",
     "starved":"The sand that keeps the estuary alive has been cut off up the coast, and the river mouth is suffering for it."},
   "eco":{

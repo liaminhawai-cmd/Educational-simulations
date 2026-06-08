@@ -202,9 +202,11 @@ function voiceStates(st,o){
   // Town cares if a cliff or beach asset was retreated (road or houses deliberately given up)
   const retreatedAsset=st.seg.some((s,i)=>s.asset&&(s.cliff||s.kind==="beach")&&st.meas[i]==="retreat");
   const sb=o.startBeach;
+  const setbackBuilt=houseOn(st,'setback');
   return{
-    // Owners: good only when the estuary is healthy and no hard structure on the significant site.
-    owners:(wallEstuary||o.estuary<0.20)?"bad":(o.estuary>=0.30)?"good":"mixed",
+    // Owners: good only when estuary healthy, no hard wall on site, and no new homes
+    // approved right beside the significant site (development near it is also a concern).
+    owners:(wallEstuary||o.estuary<0.20)?"bad":(o.estuary>=0.30&&!setbackBuilt)?"good":"mixed",
     // Eco: strict about hard structures -- even one wall or groyne pushes them to mixed.
     // Their ideal is a coast managed with no concrete at all.
     eco:(o.dunes>=0.45&&hard===0&&o.estuary>=0.25)?"good":(o.dunes<0.25||hard>=3||o.estuary<0.15)?"bad":"mixed",
@@ -262,18 +264,7 @@ function alabel(cx,y,txt,col){return `<text x="${fx(cx)}" y="${fx(y)}" font-size
 function drawSVG(st, sel, stake){
   const pts=coastPts(st), N=st.seg.length, ran=st.year>0;
   let o=`<svg viewBox="0 0 ${MW} ${MH}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">`;
-  o+=`<rect x="0" y="0" width="${MW}" height="${MH}" fill="#bcd9e6"/>`;            // sea
-  // wave arrows (refraction: deep swell bends toward facing the shore near the coast)
-  for(let gx=24;gx<MW;gx+=52){ for(let gy=24;gy<MH;gy+=46){
-    const cy=coastYat(pts,gx); if(gy>cy-14) continue;
-    const nr=nearest(st,[gx,gy]); const t=clamp(1-nr.d/200,0,1);
-    const inw=st.g[nr.i].inward; let v=norm([SW[0]*(1-t)+inw[0]*t, SW[1]*(1-t)+inw[1]*t]);
-    const en=clamp(st.seg[nr.i].energyBase*(0.55+0.45*st.g[nr.i].facing)*st.g[nr.i].focus,0,1.1);
-    const L=7+en*9, op=(0.25+en*0.5).toFixed(2);
-    const ex=gx+v[0]*L, ey=gy+v[1]*L;
-    o+=`<g stroke="#2f6f93" stroke-width="1.4" fill="none" opacity="${op}"><line x1="${gx}" y1="${gy}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}"/>`+
-       `<path d="M${ex.toFixed(1)} ${ey.toFixed(1)} l${(-v[0]*4-v[1]*3).toFixed(1)} ${(-v[1]*4+v[0]*3).toFixed(1)} m0 0 l${(-v[0]*4+v[1]*3).toFixed(1)} ${(-v[1]*4-v[0]*3).toFixed(1)}"/></g>`;
-  }}
+  o+=`<rect x="0" y="0" width="${MW}" height="${MH}" fill="#bcd9e6"/>`;            // sea (waves drawn on canvas overlay)
   // land polygon (top edge = coastline)
   let land=`M 0 ${pts[0][1].toFixed(1)} `;
   pts.forEach(p=>land+=`L ${p[0].toFixed(1)} ${p[1].toFixed(1)} `);
@@ -353,8 +344,8 @@ function drawSVG(st, sel, stake){
     o+=`<path d="M${fx(dex)} ${fx(dey-13)} L${fx(dex+8)} ${fx(dey-7)} L${fx(dex)} ${fx(dey-6)} Z" fill="#e0dbd0"/>`;}
   // ===== feature name labels on the coast =====
   // sea label + wave hint
-  o+=`<text x="80" y="62" font-size="13" font-weight="700" fill="#1e5a7a" opacity="0.7">Open ocean</text>`;
-  o+=`<text x="80" y="77" font-size="10.5" fill="#1e5a7a" opacity="0.6">Waves travel this way  --&gt;</text>`;
+  o+=`<text x="72" y="58" font-size="12.5" font-weight="700" fill="#1e5a7a" opacity="0.75">Open ocean</text>`;
+  o+=`<text x="72" y="73" font-size="10" fill="#1e5a7a" opacity="0.65">Moving waves push sand along the shore</text>`;
   // headland
   o+=`<text x="${fx(pts[0][0]+4)}" y="${fx(pts[0][1]-46)}" font-size="12" font-weight="700" text-anchor="middle" fill="#3a2a1a">Wattle Head</text>`;
   o+=`<text x="${fx(pts[0][0]+4)}" y="${fx(pts[0][1]-33)}" font-size="10" text-anchor="middle" fill="#7a5238">(hard rock headland)</text>`;
@@ -419,6 +410,53 @@ function drawSVG(st, sel, stake){
   return o+`</svg>`;
 }
 
+/* ===== WAVE CANVAS (sits on top of SVG; pointer-events:none) ===== */
+let _wc=null, _wx=null, _wt=0;
+function initWaveCanvas(){
+  if(typeof document==='undefined') return;
+  const wrap=document.querySelector&&document.querySelector('.mapwrap');
+  if(!wrap||_wc) return;
+  _wc=document.createElement('canvas');
+  _wc.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2';
+  wrap.style.position='relative';
+  wrap.appendChild(_wc);
+  _wx=_wc.getContext('2d');
+  function sizeWave(){_wc.width=wrap.offsetWidth||640;_wc.height=wrap.offsetHeight||400;}
+  sizeWave();
+  window.addEventListener('resize',sizeWave);
+  waveFrame();
+}
+function waveFrame(){
+  requestAnimationFrame(waveFrame);
+  _wt+=0.7;
+  if(!_wc||!_wx) return;
+  const W=_wc.width, H=_wc.height, scx=W/960, scy=H/560;
+  _wx.clearRect(0,0,W,H);
+  // swell direction [0.45, 0.89] normalised
+  const sm=Math.hypot(0.45,0.89), sx=0.45/sm, sy=0.89/sm;
+  const px=-sy, py=sx;  // perpendicular (along-coast)
+  const SPACING=56, phase=(_wt*0.85)%SPACING;
+  // current coastline for clipping waves to sea area
+  const pts=(typeof st!=='undefined'&&st)?coastPts(st):null;
+  for(let k=-2;k<20;k++){
+    const d=k*SPACING+phase, ox=sx*d, oy=sy*d;
+    _wx.beginPath();
+    let started=false;
+    for(let t=-600;t<=1700;t+=8){
+      const undulate=Math.sin(t*0.012+_wt*0.022+k*0.8)*6;
+      const svgx=ox+px*t+sx*undulate, svgy=oy+py*t+sy*undulate;
+      const coastY=pts?coastYat(pts,svgx)-12:280;
+      if(svgy>=coastY||svgy<-90){started=false;continue;}
+      const cx=svgx*scx, cy=svgy*scy;
+      if(!started){_wx.moveTo(cx,cy);started=true;}else _wx.lineTo(cx,cy);
+    }
+    const alpha=0.09+0.07*Math.sin(k*1.9+_wt*0.012);
+    _wx.strokeStyle=`rgba(20,90,130,${Math.max(0,alpha).toFixed(3)})`;
+    _wx.lineWidth=1.6;
+    _wx.stroke();
+  }
+}
+
 /* ===== UI ===== */
 const TOTAL_DECADES=3;
 let st, sel=null, selHouse=null, decadesRun=0, reflectOpen=false, animating=false;
@@ -476,6 +514,8 @@ function reactionLine(id,o,vs){
   } else if(id==="owners"){
     if(wallSite) bits.push(DT.wallOnSite);
     else if(o.estuary<0.20) bits.push(DT.starved);
+    if(retreatedAsset||wallSite||o.estuary<0.20); // already said something
+    else if(houseOn(st,'setback')) bits.push(DT.setbackBuilt);
     else if(vs.owners==="good") bits.push(DT.respected);
   }
   bits.push(D.VLINES[id][vs[id]]);
@@ -716,7 +756,7 @@ function downloadReport(){
   const a=document.createElement("a"); a.href=u; a.download="wattle-bay-plan.txt"; a.click(); URL.revokeObjectURL(u);
 }
 
-function init(){ st=Sim.initState(); renderChars(); renderAction(); updateHint(); redraw(); }
+function init(){ st=Sim.initState(); renderChars(); renderAction(); updateHint(); redraw(); initWaveCanvas(); }
 if(typeof document!=="undefined") init();
 """
 
