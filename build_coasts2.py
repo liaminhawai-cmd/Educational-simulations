@@ -38,7 +38,6 @@ svg{display:block;width:100%;height:100%}
 .cc-namewrap{flex:1 1 auto;display:flex;flex-direction:column;line-height:1.15;min-width:0}
 .cc-name{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13.5px;font-weight:700}
 .cc-role{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
-.cc-flag{font-family:ui-sans-serif,system-ui,sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#7c3aed;background:#7c3aed18;border:1px solid #7c3aed55;border-radius:10px;padding:2px 6px;white-space:nowrap}
 .cc-mood{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;border-radius:11px;padding:2px 9px;white-space:nowrap}
 .cc-line{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--ink);margin:6px 0 0;line-height:1.4}
 .cc-more{margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
@@ -46,10 +45,6 @@ svg{display:block;width:100%;height:100%}
 .cc-more .gh{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin:2px 0 3px}
 .cc-more ul{margin:0;padding-left:17px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px}
 .cc-more li{margin-bottom:2px}
-.consult{margin-top:9px;background:#f5f0fb;border:1px solid #7c3aed44;border-radius:7px;padding:9px 11px}
-.consult p{margin:0 0 8px;font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;color:#5b2a9e}
-.consult.done{background:var(--okb);border-color:#3a8a4e55;color:var(--ok);font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:600}
-.consult.missed{background:var(--nob);border-color:#b1492f55;color:var(--no);font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px}
 /* ---- action panel ---- */
 .action{flex:1 1 auto;min-height:0;overflow-y:auto;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:12px}
 .budget-row{display:flex;align-items:center;gap:10px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;padding:7px 10px;background:#f7fafb;border:1px solid var(--line);border-radius:6px;margin:0 0 10px}
@@ -145,7 +140,7 @@ function initState(){
   return {seg:D.SEG.map(s=>({...s,energyBase:s.energy,sand:s.sand,dune:s.dune,retreat:0,lost:false})),
           g:geom(), meas:D.SEG.map(()=> "none"),
           apps:{clifftop:null,beachfront:null,setback:null}, houseLost:{}, stake:null,
-          consulted:false, spend:0, year:0};
+          spend:0, year:0};
 }
 function applyApprovals(st){
   // clifftop homes: built on the soft cliff at The Shoulder, at risk from cliff retreat
@@ -206,9 +201,9 @@ function voiceStates(st,o){
   const wallEstuary=[7,8].some(i=>st.meas[i]==="seawall"||st.meas[i]==="groyne"); // hard structure on the township / river-mouth
   const sb=o.startBeach;
   return{
-    // Traditional Owners: harm to the site = bad; otherwise being fully happy needs BOTH a healthy
-    // river mouth AND that they were consulted before the work (process matters, not just outcome).
-    owners:(wallEstuary||o.estuary<0.20)?"bad":(st.consulted&&o.estuary>=0.30)?"good":"mixed",
+    // Traditional Owners: they are happy when you do what they asked for -- the river mouth kept
+    // healthy and no hard wall forced onto the significant site. Harm to the site = bad.
+    owners:(wallEstuary||o.estuary<0.20)?"bad":(o.estuary>=0.30)?"good":"mixed",
     eco:(o.dunes>=0.45&&hard<=1&&o.estuary>=0.25)?"good":(o.dunes<0.25||hard>=4||o.estuary<0.15)?"bad":"mixed",
     town:(o.beach>=0.70*sb&&o.assetsLost===0&&hard<=3)?"good":(o.beach<0.50*sb||o.assetsLost>0)?"bad":"mixed",
   };
@@ -216,7 +211,11 @@ function voiceStates(st,o){
 function engineerText(st,o){
   const s=st.seg, b=[];
   const dB=o.beach-o.startBeach;
-  b.push(dB>0.06?"The sheltered bay has built out and the beaches are wider.":dB<-0.06?"The beaches have got thinner overall.":"The beaches have roughly held their own.");
+  b.push(dB>0.06
+    ? "Overall the beaches built out. Sand drifting along the shore piled up in the sheltered bay even as the exposed headland and cliffs wore back -- a coast like this rarely thins evenly, the waves just move sand from the exposed spots and drop it where it is sheltered."
+    : dB<-0.06
+    ? "Overall the beaches lost a little sand: some washed off the downdrift end and storms carried some out to sea, faster than the updrift supply could replace it. Even so the coast did not thin evenly -- the exposed cliffs and headland gave up sand while the sheltered bay held on to more of it."
+    : "Overall the beaches roughly held their own. What the exposed cliffs and headland lost, the sheltered bay and the spit mostly gained: the sand was reshuffled along the coast rather than simply vanishing.");
   const lost=s.filter(x=>x.lost && x.asset!=="houses").map(x=>x.asset);
   if(lost.length) b.push("The "+lost.join(" and the ")+" "+(lost.length>1?"have":"has")+" gone over the wearing cliff.");
   if(o.clifftopLost) b.push("The new clifftop homes have fallen over the cliff -- a costly mistake.");
@@ -468,17 +467,11 @@ function reactionLine(id,o,vs){
   } else if(id==="owners"){
     if(wallSite) bits.push(DT.wallOnSite);
     else if(o.estuary<0.20) bits.push(DT.starved);
-    bits.push(st.consulted?DT.consulted:DT.notConsulted);
+    else if(vs.owners==="good") bits.push(DT.respected);
   }
   bits.push(D.VLINES[id][vs[id]]);
   return bits.join(" ");
 }
-function consultControlHTML(){
-  if(st.consulted) return `<div class="consult done">&#10003; ${D.META.consultDone}</div>`;
-  if(decadesRun>0) return `<div class="consult missed">The years have begun without consultation. In real life, consultation comes before any work -- this was a chance missed.</div>`;
-  return `<div class="consult"><p>${D.META.consultPrompt}</p><button class="hbtn" onclick="consult()">Begin consultation</button></div>`;
-}
-function consult(){ if(animating||decadesRun>0||st.consulted) return; st.consulted=true; renderChars(); updateHint(); }
 function renderChars(){
   const html=D.VOICES.filter(v=>v.id!=="engineer").map(v=>{
     const mood=st._vs?st._vs[v.id]:null;
@@ -489,15 +482,13 @@ function renderChars(){
     if(on){
       extra=`<div class="cc-more"><p>${v.view}</p>`;
       if(v.goals&&v.goals.length) extra+=`<div class="gh">What they want</div><ul>${v.goals.map(g=>`<li>${g}</li>`).join("")}</ul>`;
-      if(v.id==="owners") extra+=consultControlHTML();
       extra+=`</div>`;
     }
-    const flag=v.id==="owners"&&!st.consulted&&decadesRun===0?`<span class="cc-flag">consult first</span>`:"";
     return `<div class="char-card${on?' on':''}" style="border-left-color:${col}">
       <div class="cc-top" onclick="setStake('${v.id}')">
         <span class="cc-face">${avatarSVG(v.avatar,v.colour)}</span>
         <span class="cc-namewrap"><span class="cc-name">${v.person||v.name}</span><span class="cc-role">${v.name}</span></span>
-        ${flag}<span class="cc-mood" style="background:${col}">${word}</span></div>
+        <span class="cc-mood" style="background:${col}">${word}</span></div>
       <p class="cc-line">${line}</p>${extra}</div>`;
   }).join("");
   $("chars").innerHTML=html;
@@ -509,9 +500,7 @@ function updateHint(){
     ? `<span style="color:${v.colour}">&#9679;</span> <b>${v.person||v.name}:</b> ${v.concern}`
     : (decadesRun>=TOTAL_DECADES
         ? "Thirty years done. See how each adviser feels, then open Reflect like a geographer below."
-        : (decadesRun===0&&!st.consulted
-            ? "Start by tapping the Traditional Owners card to consult. Then inspect the coast and choose how to protect it."
-            : "Tap a spot on the coast to inspect and protect it. Tap an adviser to hear more from them."));
+        : "Tap each adviser to hear what they want, then tap a spot on the coast to inspect and protect it.");
 }
 
 /* ---- engineer's plain-language insight for a clicked spot ---- */
@@ -651,16 +640,24 @@ function dispState(A,B,f){
     lost:B.lost[i]}))};
 }
 function playSnaps(snaps,done){
-  if(typeof requestAnimationFrame==="undefined"){ animating=false; done&&done(); return; }
+  if(typeof requestAnimationFrame==="undefined" || typeof performance==="undefined"){
+    animating=false; redraw(); done&&done(); return;
+  }
   animating=true;
-  const perYear=170, total=(snaps.length-1)*perYear, t0=performance.now();
-  (function frame(now){
-    const k=Math.min(1,(now-t0)/total)*(snaps.length-1);
-    const a=Math.min(Math.floor(k),snaps.length-2), f=k-a;
-    redraw(dispState(snaps[a],snaps[a+1],f));
-    if((now-t0)<total) requestAnimationFrame(frame);
-    else { animating=false; redraw(); done&&done(); }
-  })(t0);
+  const perYear=170, total=Math.max(1,(snaps.length-1)*perYear), t0=performance.now();
+  let finished=false;
+  function finish(){ if(finished) return; finished=true; animating=false; redraw(); done&&done(); }
+  function frame(now){
+    if(finished) return;
+    try{
+      const k=Math.min(1,(now-t0)/total)*(snaps.length-1);
+      const a=Math.min(Math.floor(k),snaps.length-2), f=k-a;
+      redraw(dispState(snaps[a],snaps[a+1],f));
+    }catch(e){ finish(); return; }              // a bad frame must never leave the UI locked
+    if((now-t0)<total) requestAnimationFrame(frame); else finish();
+  }
+  requestAnimationFrame(frame);
+  setTimeout(finish, total+1200);               // watchdog: if rAF stalls (e.g. backgrounded tab), recover
 }
 function runDecade(){
   if(animating||decadesRun>=TOTAL_DECADES) return;

@@ -20,8 +20,6 @@ META = {
             "them, they drop their sand and the beach grows. Decide where new houses can go, protect the "
             "coast, then run the years ten at a time and watch what your three advisers think."),
   "driftNote": "Waves push sand left to right along the shore (longshore drift). The headland and the bay change how hard the waves hit.",
-  "consultPrompt": "Real consultation happens before any work, not after. Begin consultation with the Traditional Owners now, while there is still a genuine say to be had.",
-  "consultDone": "Consultation has begun. You will work with the Traditional Owners, keep hard structures off the river mouth, and keep the estuary healthy.",
 }
 
 # Nodes left -> right. bx,by = base position on a 960x560 map (sea above, land below).
@@ -74,7 +72,7 @@ VOICES = [
    "view":"My job is to explain how this coast works, not to take a side. The headland is hard rock taking the full force of the waves; the soft cliffs next to it wear back quickly wherever the beach in front of them gets thin. The sheltered bay collects sand and the beach grows; the spit builds up from sand carried along the shore past the river mouth. Anything hard you build changes how the sand moves, which can help one spot and starve another further along."},
   {"id":"owners","name":"Traditional Owners","person":"Wattle Bay Traditional Owners","avatar":"country","colour":"#7c3aed",
    "focus":[8],
-   "concern":"This is our Country. The river mouth is a significant site -- talk with us before any work begins, not after. Tap us, then begin consultation.",
+   "concern":"This is our Country, and the river mouth is a significant site. Tap us to hear what we need, then keep it in mind before you act.",
    "view":"This place has been known and cared for by our community for a very long time. The river mouth is a significant site, and any work near it requires genuine consultation with us from the start -- not a notification after decisions are already made. We are not against the coast being managed; we need to be part of that conversation. In real life this is called Free, Prior and Informed Consent: we are spoken with early, given the full picture, and have a real say.",
    "goals":["Be consulted before any work begins, with a genuine say","Protect the river-mouth significant site from disturbance","Keep hard walls and structures away from the estuary","Keep the river and estuary healthy for future generations"]},
   {"id":"eco","name":"Marine ecologist","person":"Dr Hannah Cole","avatar":"eco","colour":"#237a3b",
@@ -104,8 +102,7 @@ VOICE_LINES = {
 # Situational one-liners. A reaction is built from any that apply, then the overall mood line above.
 VOICE_DETAIL = {
   "owners":{
-    "notConsulted":"And we still were not properly consulted before the work began.",
-    "consulted":"Thank you for consulting with us before you started -- that is how it should be done.",
+    "respected":"You listened to what we asked for: hard structures kept off the river mouth and the sand still reaching it. Our significant site has been respected.",
     "wallOnSite":"A hard wall has been put right on the river mouth, our significant site. That should never have happened.",
     "starved":"The sand that keeps the estuary alive has been cut off up the coast, and the river mouth is suffering for it."},
   "eco":{
