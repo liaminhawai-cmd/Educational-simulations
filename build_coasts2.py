@@ -39,6 +39,9 @@ svg{display:block;width:100%;height:100%}
 .cc-name{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13.5px;font-weight:700}
 .cc-role{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
 .cc-mood{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;border-radius:11px;padding:2px 9px;white-space:nowrap}
+.cc-mood{min-width:46px;text-align:center}
+.cc-bar{height:6px;background:#ece9f0;border-radius:4px;margin:7px 0 0;overflow:hidden}
+.cc-bar span{display:block;height:100%;border-radius:4px;transition:width .45s}
 .cc-line{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--ink);margin:6px 0 0;line-height:1.4}
 .cc-more{margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
 .cc-more p{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;margin:0 0 6px;color:var(--ink)}
@@ -196,25 +199,39 @@ function outcome(st){
   const housesLost=(clifftopLost?1:0)+(beachLost?1:0);
   return {beach,dunes,assetsLost,estuary,walled,startBeach:START_BEACH,clifftopLost,beachLost,housesLost};
 }
+/* Each adviser gets a happiness score out of 10. A balanced plan tops out around 8 each;
+   you can push one adviser higher only by upsetting the others. */
+function voiceScores(st,o){
+  const m=st.meas, sb=o.startBeach||1;
+  const hard=m.filter(x=>x==="seawall"||x==="groyne").length;
+  const wallSite=[7,8].some(i=>m[i]==="seawall"||m[i]==="groyne");          // hard structure on township / river mouth
+  const retreatedN=st.seg.filter((s,i)=>s.asset&&(s.cliff||s.kind==="beach")&&m[i]==="retreat").length;
+  const setback=houseOn(st,'setback'), growth=approvedCount(st)>=1;
+  const beachR=o.beach/sb;
+  // ---- Town: wide beach, assets kept safe, some growth; dislikes losing/retreating assets and a wall of concrete
+  let town=2.4;
+  town+=clamp(beachR/1.12,0,1)*3.6;
+  town+=o.assetsLost===0?2.4:0;  town-=o.assetsLost*2.2;
+  town-=o.housesLost*1.6;        town-=retreatedN*1.5;
+  town+=growth?1.3:0;           town-=Math.max(0,hard-3)*1.3;
+  // ---- Eco: healthy dunes and estuary, and as little concrete as possible. One or two structures
+  // are tolerated; the penalty grows fast after that, so a wall-heavy coast collapses their score.
+  let eco=5.1;
+  eco+=clamp(o.dunes/0.52,0,1)*2.5;
+  eco+=clamp(o.estuary/0.27,0,1)*2.6;
+  eco-=(0.4*hard + 0.3*hard*hard);  eco-=setback?0.4:0;
+  // ---- Owners: respecting the site (healthy estuary, no wall on it, no development against it)
+  // sits around 8; actively keeping the estuary thriving can lift them higher.
+  let owners=3.9;
+  owners+=clamp(o.estuary/0.28,0,1.35)*4.8;
+  owners-=wallSite?6.5:0;  owners-=setback?2.0:0;  owners-=o.estuary<0.20?2.5:0;
+  const r=v=>Math.round(clamp(v,0,10));
+  return {town:r(town),eco:r(eco),owners:r(owners)};
+}
+function scoreTier(s){return s>=8?"good":s>=5?"mixed":"bad";}
 function voiceStates(st,o){
-  const hard=st.meas.filter(x=>x==="seawall"||x==="groyne").length;
-  const wallEstuary=[7,8].some(i=>st.meas[i]==="seawall"||st.meas[i]==="groyne");
-  // Town cares if a cliff or beach asset was retreated (road or houses deliberately given up)
-  const retreatedAsset=st.seg.some((s,i)=>s.asset&&(s.cliff||s.kind==="beach")&&st.meas[i]==="retreat");
-  const sb=o.startBeach;
-  const setbackBuilt=houseOn(st,'setback');
-  return{
-    // Owners: good only when estuary healthy, no hard wall on site, and no new homes
-    // approved right beside the significant site (development near it is also a concern).
-    owners:(wallEstuary||o.estuary<0.20)?"bad":(o.estuary>=0.30&&!setbackBuilt)?"good":"mixed",
-    // Eco: strict about hard structures -- even one wall or groyne pushes them to mixed.
-    // Their ideal is a coast managed with no concrete at all.
-    eco:(o.dunes>=0.45&&hard===0&&o.estuary>=0.25)?"good":(o.dunes<0.25||hard>=3||o.estuary<0.15)?"bad":"mixed",
-    // Town: fine with walls (up to a point) but NOT with losing or retreating the road / houses.
-    // Retreat counts as giving up infrastructure --> at best "mixed", not "good".
-    town:(!retreatedAsset&&o.beach>=0.70*sb&&o.assetsLost===0&&hard<=3)?"good"
-        :(o.beach<0.50*sb||o.assetsLost>0)?"bad":"mixed",
-  };
+  const sc=voiceScores(st,o);
+  return {owners:scoreTier(sc.owners),eco:scoreTier(sc.eco),town:scoreTier(sc.town)};
 }
 function engineerText(st,o){
   const s=st.seg, b=[];
@@ -236,7 +253,7 @@ function engineerText(st,o){
   if(s[9].sand>0.85) b.push("The spit has grown as sand drifting along the shore drops past the river mouth.");
   return b.join(" ");
 }
-const Sim={initState,stepYear,run,outcome,voiceStates,engineerText,applyApprovals,geom,energyOf,START_BEACH,houseOn,approvedCount};
+const Sim={initState,stepYear,run,outcome,voiceStates,voiceScores,engineerText,applyApprovals,geom,energyOf,START_BEACH,houseOn,approvedCount};
 if(typeof window!=="undefined"){ window.Sim=Sim; window._drawSVG=drawSVG; }
 
 /* ===== MAP (pure: state -> SVG) ===== */
@@ -426,34 +443,41 @@ function initWaveCanvas(){
   window.addEventListener('resize',sizeWave);
   waveFrame();
 }
+/* Wave refraction: far out the crests are straight lines square to the deep-water swell.
+   As they reach shallow water near the coast they slow and bend to lie parallel to the
+   shoreline -- so they wrap around the headlands (focusing energy there) and curve into
+   the bay. We get that by blending each crest, point by point, from its straight deep-water
+   position toward a line that hugs the coast, weighted by how close to shore it is. */
 function waveFrame(){
   requestAnimationFrame(waveFrame);
   _wt+=0.7;
   if(!_wc||!_wx) return;
-  const W=_wc.width, H=_wc.height, scx=W/960, scy=H/560;
+  const W=_wc.width, H=_wc.height;
   _wx.clearRect(0,0,W,H);
-  // swell direction [0.45, 0.89] normalised
-  const sm=Math.hypot(0.45,0.89), sx=0.45/sm, sy=0.89/sm;
-  const px=-sy, py=sx;  // perpendicular (along-coast)
-  const SPACING=56, phase=(_wt*0.85)%SPACING;
-  // current coastline for clipping waves to sea area
+  // match the SVG's preserveAspectRatio="xMidYMid meet" so the waves sit on the coastline
+  const scl=Math.min(W/960,H/560), oX=(W-960*scl)/2, oY=(H-560*scl)/2;
+  const sx=SW[0], sy=SW[1];                              // swell travel direction (down-right)
   const pts=(typeof st!=='undefined'&&st)?coastPts(st):null;
-  for(let k=-2;k<20;k++){
-    const d=k*SPACING+phase, ox=sx*d, oy=sy*d;
-    _wx.beginPath();
-    let started=false;
-    for(let t=-600;t<=1700;t+=8){
-      const undulate=Math.sin(t*0.012+_wt*0.022+k*0.8)*6;
-      const svgx=ox+px*t+sx*undulate, svgy=oy+py*t+sy*undulate;
-      const coastY=pts?coastYat(pts,svgx)-12:280;
-      if(svgy>=coastY||svgy<-90){started=false;continue;}
-      const cx=svgx*scx, cy=svgy*scy;
-      if(!started){_wx.moveTo(cx,cy);started=true;}else _wx.lineTo(cx,cy);
+  if(!pts) return;
+  const SPACING=44, Dref=190, phase=(_wt*0.6)%SPACING;   // Dref = depth over which waves refract
+  for(let k=0;k<30;k++){
+    const Cc=phase + k*SPACING - 150;                    // crest phase: increasing = closer to shore
+    _wx.beginPath(); let started=false, shMax=0;
+    for(let x=-30;x<=995;x+=8){
+      const coastY=coastYat(pts,x);
+      const deepY=(Cc - x*sx)/sy;                        // straight deep-water crest
+      const shoreY=coastY-8;                             // a line that hugs the shore
+      const sh=clamp(1-(coastY-deepY)/Dref,0,1);         // 0 far out .. 1 at the shore
+      const y=deepY*(1-sh)+shoreY*sh;                    // bend toward shore-parallel as it shoals
+      if(y<coastY-5 && y>-60){
+        const cx=oX+x*scl, cy=oY+y*scl;
+        if(!started){_wx.moveTo(cx,cy);started=true;}else _wx.lineTo(cx,cy);
+        if(sh>shMax) shMax=sh;
+      } else started=false;
     }
-    const alpha=0.09+0.07*Math.sin(k*1.9+_wt*0.012);
-    _wx.strokeStyle=`rgba(20,90,130,${Math.max(0,alpha).toFixed(3)})`;
-    _wx.lineWidth=1.6;
-    _wx.stroke();
+    const a=0.14*(1-0.5*shMax);                          // crests fade as they pile up and break on the shore
+    _wx.strokeStyle='rgba(22,92,132,'+Math.max(0,a).toFixed(3)+')';
+    _wx.lineWidth=1.5; _wx.stroke();
   }
 }
 
@@ -514,7 +538,6 @@ function reactionLine(id,o,vs){
   } else if(id==="owners"){
     if(wallSite) bits.push(DT.wallOnSite);
     else if(o.estuary<0.20) bits.push(DT.starved);
-    if(retreatedAsset||wallSite||o.estuary<0.20); // already said something
     else if(houseOn(st,'setback')) bits.push(DT.setbackBuilt);
     else if(vs.owners==="good") bits.push(DT.respected);
   }
@@ -524,9 +547,12 @@ function reactionLine(id,o,vs){
 function renderChars(){
   const html=D.VOICES.filter(v=>v.id!=="engineer").map(v=>{
     const mood=st._vs?st._vs[v.id]:null;
+    const score=st._sc?st._sc[v.id]:null;
     const [word,col]=moodBits(mood);
     const on=st.stake===v.id;
     const line = mood ? reactionLine(v.id,st._o,st._vs) : v.concern;
+    const pill = score==null ? word : `${score}/10`;
+    const bar = score==null ? "" : `<div class="cc-bar"><span style="width:${score*10}%;background:${col}"></span></div>`;
     let extra="";
     if(on){
       extra=`<div class="cc-more"><p>${v.view}</p>`;
@@ -537,8 +563,8 @@ function renderChars(){
       <div class="cc-top" onclick="setStake('${v.id}')">
         <span class="cc-face">${avatarSVG(v.avatar,v.colour)}</span>
         <span class="cc-namewrap"><span class="cc-name">${v.person||v.name}</span><span class="cc-role">${v.name}</span></span>
-        <span class="cc-mood" style="background:${col}">${word}</span></div>
-      <p class="cc-line">${line}</p>${extra}</div>`;
+        <span class="cc-mood" style="background:${col}" title="${word}">${pill}</span></div>
+      ${bar}<p class="cc-line">${line}</p>${extra}</div>`;
   }).join("");
   $("chars").innerHTML=html;
 }
@@ -718,13 +744,13 @@ function runDecade(){
   const rng=mkRng(4242+st.year), snaps=[snap()];
   for(let y=0;y<10;y++){ Sim.stepYear(st,rng()); snaps.push(snap()); }
   decadesRun++;
-  const o=Sim.outcome(st), vs=Sim.voiceStates(st,o);
-  st._o=o; st._vs=vs;
+  const o=Sim.outcome(st), vs=Sim.voiceStates(st,o), sc=Sim.voiceScores(st,o);
+  st._o=o; st._vs=vs; st._sc=sc;
   let h="";
   if(o.housesLost>0){ h+=`<div class="bigtrouble">Big trouble: ${o.housesLost===1?"a set of new homes has":"new homes have"} been lost to the sea. Building too close to the water has cost the council dearly.</div>`; }
   h+=`<div class="stamp">After ${st.year} years</div>`;
   h+=`<div class="eng-box"><div class="eng-who">Coastal engineer</div><p>${Sim.engineerText(st,o)}</p></div>`;
-  h+=`<p class="note" style="margin-top:6px">See how your three advisers feel in the cards above.</p>`;
+  h+=`<p class="note" style="margin-top:6px">Each adviser now has a happiness score out of 10 (in the cards above). No plan keeps everyone at the top: around 8 out of 10 each is about the best shared balance, and pushing one higher usually pulls another down.</p>`;
   st._reviewHTML=h;
   sel=null; selHouse=null;
   animating=true;
@@ -747,11 +773,11 @@ function checkA(n){
 }
 
 function downloadReport(){
-  const o=Sim.outcome(st), vs=Sim.voiceStates(st,o);
+  const o=Sim.outcome(st), vs=Sim.voiceStates(st,o), sc=Sim.voiceScores(st,o);
   const dec=D.HOUSING.map(h=>`  ${h.name}: ${houseOn(st,h.id)?"approved":"not approved"}`).join("\n");
   const mez=st.seg.map((s,i)=>st.meas[i]!=="none"?`  ${s.name}: ${D.STRAT[st.meas[i]].name}`:null).filter(Boolean).join("\n")||"  (none)";
-  const vlines=D.VOICES.filter(v=>v.id!=="engineer").map(v=>`  ${v.name}: ${D.VLINES[v.id][vs[v.id]]}`).join("\n");
-  const txt=`WATTLE BAY COASTAL PLAN, year ${st.year}\n\nMONEY: ${computeSpend()} of ${availBudget()} spent\n\nHOUSING DECISIONS\n${dec}\n\nPROTECTION MEASURES\n${mez}\n\nWHAT HAPPENED\n  Coastal engineer: ${Sim.engineerText(st,o)}\n${vlines}\n`;
+  const vlines=D.VOICES.filter(v=>v.id!=="engineer").map(v=>`  ${v.name} (${sc[v.id]}/10): ${D.VLINES[v.id][vs[v.id]]}`).join("\n");
+  const txt=`WATTLE BAY COASTAL PLAN, year ${st.year}\n\nMONEY: ${computeSpend()} of ${availBudget()} spent\n\nHOUSING DECISIONS\n${dec}\n\nPROTECTION MEASURES\n${mez}\n\nHOW THE ADVISERS SCORED IT (out of 10)\n${vlines}\n\nWHAT HAPPENED\n  Coastal engineer: ${Sim.engineerText(st,o)}\n`;
   const b=new Blob([txt],{type:"text/plain"}); const u=URL.createObjectURL(b);
   const a=document.createElement("a"); a.href=u; a.download="wattle-bay-plan.txt"; a.click(); URL.revokeObjectURL(u);
 }
