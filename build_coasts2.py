@@ -198,14 +198,20 @@ function outcome(st){
 }
 function voiceStates(st,o){
   const hard=st.meas.filter(x=>x==="seawall"||x==="groyne").length;
-  const wallEstuary=[7,8].some(i=>st.meas[i]==="seawall"||st.meas[i]==="groyne"); // hard structure on the township / river-mouth
+  const wallEstuary=[7,8].some(i=>st.meas[i]==="seawall"||st.meas[i]==="groyne");
+  // Town cares if a cliff or beach asset was retreated (road or houses deliberately given up)
+  const retreatedAsset=st.seg.some((s,i)=>s.asset&&(s.cliff||s.kind==="beach")&&st.meas[i]==="retreat");
   const sb=o.startBeach;
   return{
-    // Traditional Owners: they are happy when you do what they asked for -- the river mouth kept
-    // healthy and no hard wall forced onto the significant site. Harm to the site = bad.
+    // Owners: good only when the estuary is healthy and no hard structure on the significant site.
     owners:(wallEstuary||o.estuary<0.20)?"bad":(o.estuary>=0.30)?"good":"mixed",
-    eco:(o.dunes>=0.45&&hard<=1&&o.estuary>=0.25)?"good":(o.dunes<0.25||hard>=4||o.estuary<0.15)?"bad":"mixed",
-    town:(o.beach>=0.70*sb&&o.assetsLost===0&&hard<=3)?"good":(o.beach<0.50*sb||o.assetsLost>0)?"bad":"mixed",
+    // Eco: strict about hard structures -- even one wall or groyne pushes them to mixed.
+    // Their ideal is a coast managed with no concrete at all.
+    eco:(o.dunes>=0.45&&hard===0&&o.estuary>=0.25)?"good":(o.dunes<0.25||hard>=3||o.estuary<0.15)?"bad":"mixed",
+    // Town: fine with walls (up to a point) but NOT with losing or retreating the road / houses.
+    // Retreat counts as giving up infrastructure --> at best "mixed", not "good".
+    town:(!retreatedAsset&&o.beach>=0.70*sb&&o.assetsLost===0&&hard<=3)?"good"
+        :(o.beach<0.50*sb||o.assetsLost>0)?"bad":"mixed",
   };
 }
 function engineerText(st,o){
@@ -403,11 +409,11 @@ function drawSVG(st, sel, stake){
     if(sel===i) o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="23" fill="#cf8336" opacity="0.14"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="23" fill="none" stroke="#cf8336" stroke-width="2.5"/>`;
     o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="26" fill="#000" opacity="0" style="cursor:pointer" onclick="clickCoast(${i})"/>`;
   });
-  // stakeholder focus highlight
+  // stakeholder focus highlight -- pointer-events:none so the click targets underneath still work
   if(stake){const v=D.VOICES.find(x=>x.id===stake);
     if(v&&v.focus) v.focus.forEach(i=>{const x=pts[i][0],y=pts[i][1];
-      o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="21" fill="${v.colour}" opacity="0.14"/>`+
-         `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="21" fill="none" stroke="${v.colour}" stroke-width="2.5" opacity="0.9"/>`;});}
+      o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="21" fill="${v.colour}" opacity="0.14" pointer-events="none"/>`+
+         `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="21" fill="none" stroke="${v.colour}" stroke-width="2.5" opacity="0.9" pointer-events="none"/>`;});}
   o+=`<g stroke="#1d2a33" stroke-width="1.5" fill="#1d2a33"><line x1="${MW-30}" y1="42" x2="${MW-30}" y2="18"/><path d="M${MW-30} 18 l-4 7 l4 -2 l4 2 z"/><text x="${MW-34}" y="56" font-size="10">N</text></g>`;
   o+=`<rect x="24" y="${MH-26}" width="72" height="5" fill="#1d2a33"/><text x="24" y="${MH-30}" font-size="10" fill="#1d2a33">0&#160;&#160;&#160;&#160;1 km</text>`;
   return o+`</svg>`;
@@ -452,17 +458,20 @@ function moodBits(m){
 }
 function reactionLine(id,o,vs){
   const m=st.meas, sb=o.startBeach, hard=m.filter(x=>x==="seawall"||x==="groyne").length;
-  const wallSite=[7,8].some(i=>m[i]==="seawall"||m[i]==="groyne"), DT=D.VDETAIL[id];
+  const wallSite=[7,8].some(i=>m[i]==="seawall"||m[i]==="groyne");
+  const retreatedAsset=st.seg.some((s,i)=>s.asset&&(s.cliff||s.kind==="beach")&&m[i]==="retreat");
+  const DT=D.VDETAIL[id];
   let bits=[];
   if(id==="town"){
     if(o.assetsLost>0) bits.push(DT.assetLost);
+    else if(retreatedAsset) bits.push(DT.roadRetreated);
     else if(o.beach>=0.9*sb) bits.push(DT.beachWide);
     else if(o.beach<0.6*sb) bits.push(DT.beachThin);
     if(hard>=4) bits.push(DT.tooManyWalls);
   } else if(id==="eco"){
     if(o.dunes<0.45) bits.push(DT.dunesStripped);
     if(o.estuary<0.25) bits.push(DT.estuaryStarved);
-    if(hard>=2) bits.push(DT.hardWalls);
+    if(hard>=1) bits.push(DT.hardWalls);
     if(!bits.length) bits.push(DT.natural);
   } else if(id==="owners"){
     if(wallSite) bits.push(DT.wallOnSite);
@@ -519,6 +528,7 @@ function nodeEngText(i){
     b.push(`This is the dune reserve. Plants hold the sand together, so the dunes store it and shield the land behind them. Wave energy here is ${ew}. Strip the plants and the dunes fall apart; nourishment can top the sand up.`);
   } else if(s.kind==="estuary"){
     b.push(`This is the river mouth. Sand drifting along the coast keeps the estuary healthy, and it shelters young fish and birds. Wave energy is ${ew}. It is a significant site for the Traditional Owners, so a hard wall here causes real harm.`);
+    b.push(`In real life, rivers also carry sediment down from the land and pump it out to sea -- that is a major source of beach sand worldwide. Dams built on rivers cut off that supply, which is one reason many real beaches are shrinking. In this simulation the sand comes from longshore drift, not the river, to keep things simple.`);
   } else if(s.kind==="spit"){
     b.push(`This is a spit -- a finger of sand built up where drifting sand drops past the river mouth. Wave energy is ${ew}. It grows while sand keeps moving along the coast, and shrinks if structures up the coast trap that sand.`);
   } else if(s.kind==="town"){
@@ -534,11 +544,13 @@ function nodeEngText(i){
 function spotHTML(i){
   const s=st.seg[i];
   const built=(decadesRun>0 && ["seawall","groyne"].includes(st.meas[i]));
+  const noNourish=s.cliff&&s.kind!=="headland"; // nourishment is for sandy beaches, not cliff bases
   const opts=Object.keys(D.STRAT).map(k=>{
     const on=st.meas[i]===k?" on":"";
-    const lock=built&&k!==st.meas[i]?" locked":"";
+    const lock=(built&&k!==st.meas[i])||(k==="nourish"&&noNourish)?" locked":"";
     const cost=D.STRAT[k].cost>0?` (${D.STRAT[k].cost})`:"";
-    return `<button class="sbtn${on}${lock}" onclick="${built&&k!==st.meas[i]?'':`setMeasure('${k}')`}">${D.STRAT[k].name}${cost}</button>`;
+    const click=(built&&k!==st.meas[i])||(k==="nourish"&&noNourish)?'':`setMeasure('${k}')`;
+    return `<button class="sbtn${on}${lock}" onclick="${click}">${D.STRAT[k].name}${cost}</button>`;
   }).join("");
   const cur=D.STRAT[st.meas[i]];
   return `<div class="spot">
@@ -546,6 +558,7 @@ function spotHTML(i){
     <div class="eng-box"><div class="eng-who">Coastal engineer</div><p>${nodeEngText(i)}</p></div>
     <div class="spot-sub">Choose how to manage this spot:</div>
     <div class="stratgrid">${opts}</div>
+    ${noNourish?'<div class="note">Beach nourishment is designed for sandy shores -- it does not work on a rocky cliff base.</div>':''}
     <div class="advdis"><span class="a">+ ${cur.adv}</span><br><span class="d">&minus; ${cur.dis}</span></div>
     <div id="budgetMsg" class="bmsg"></div>
     ${built?'<div class="note">A hard wall is built here and cannot be taken out cheaply.</div>':''}
