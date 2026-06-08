@@ -20,6 +20,8 @@ META = {
             "them, they drop their sand and the beach grows. Decide where new houses can go, protect the "
             "coast, then run the years ten at a time and watch what your three advisers think."),
   "driftNote": "Waves push sand left to right along the shore (longshore drift). The headland and the bay change how hard the waves hit.",
+  "consultPrompt": "Real consultation happens before any work, not after. Begin consultation with the Traditional Owners now, while there is still a genuine say to be had.",
+  "consultDone": "Consultation has begun. You will work with the Traditional Owners, keep hard structures off the river mouth, and keep the estuary healthy.",
 }
 
 # Nodes left -> right. bx,by = base position on a 960x560 map (sea above, land below).
@@ -70,21 +72,21 @@ VOICES = [
    "focus":[0,1,2,3,4],
    "concern":"Watch where the waves hit hardest -- the headland and the soft cliffs. A thin beach there means the coast wears away fast.",
    "view":"My job is to explain how this coast works, not to take a side. The headland is hard rock taking the full force of the waves; the soft cliffs next to it wear back quickly wherever the beach in front of them gets thin. The sheltered bay collects sand and the beach grows; the spit builds up from sand carried along the shore past the river mouth. Anything hard you build changes how the sand moves, which can help one spot and starve another further along."},
-  {"id":"owners","name":"Traditional Owners","role":"river-mouth significant site, consultation","colour":"#7c3aed",
+  {"id":"owners","name":"Traditional Owners","person":"Wattle Bay Traditional Owners","avatar":"country","colour":"#7c3aed",
    "focus":[8],
-   "concern":"The river mouth is a significant site. It needs protection and genuine consultation before any work -- not just an engineering decision made without us.",
-   "view":"This place has been known and cared for by our community for a very long time. The river mouth is a significant site, and any work near it requires genuine consultation with us from the start -- not a notification after decisions are already made. We are not against the coast being managed; we need to be part of that conversation.",
-   "goals":["Protect the river-mouth significant site from disturbance","Be consulted before any work near the estuary begins","Keep the river and estuary clean and healthy for future generations"]},
-  {"id":"eco","name":"Marine ecologist","role":"dunes, estuary, beach habitat","colour":"#237a3b",
+   "concern":"This is our Country. The river mouth is a significant site -- talk with us before any work begins, not after. Tap us, then begin consultation.",
+   "view":"This place has been known and cared for by our community for a very long time. The river mouth is a significant site, and any work near it requires genuine consultation with us from the start -- not a notification after decisions are already made. We are not against the coast being managed; we need to be part of that conversation. In real life this is called Free, Prior and Informed Consent: we are spoken with early, given the full picture, and have a real say.",
+   "goals":["Be consulted before any work begins, with a genuine say","Protect the river-mouth significant site from disturbance","Keep hard walls and structures away from the estuary","Keep the river and estuary healthy for future generations"]},
+  {"id":"eco","name":"Marine ecologist","person":"Dr Hannah Cole","avatar":"eco","colour":"#237a3b",
    "focus":[6,8,9],
    "concern":"The dunes, the estuary and the spit are habitat and natural defence -- not empty space waiting to be developed. Keep them intact.",
-   "view":"I look at this coast as a living system. The dune plants hold the sand in place; strip them and the dunes collapse. The estuary is a nursery for young fish and a feeding ground for birds; it depends on clean water and the sand brought in by longshore drift. Hard walls are the fastest way to break this system.",
-   "goals":["Protect the dune plants at the Dune Reserve","Keep the river-mouth estuary healthy","Avoid hard walls that cut off natural sand movement and damage habitat","Maintain the spit as shorebird habitat"]},
-  {"id":"town","name":"Tourism and residents","role":"the beach, the look of the coast, safe homes","colour":"#b35a1f",
+   "view":"I look at this coast as a living system. The dune plants hold the sand in place; strip them and the dunes collapse. The estuary is a nursery for young fish and a feeding ground for birds; it depends on clean water and the sand brought in by longshore drift. Hard walls are the fastest way to break this system -- they cut off the natural sand supply and scrape the life out of the shore.",
+   "goals":["Protect the dune plants at the Dune Reserve","Keep the river-mouth estuary healthy","Avoid hard walls that cut off natural sand movement","Maintain the spit as shorebird habitat"]},
+  {"id":"town","name":"Tourism and residents","person":"Sam Doyle","avatar":"town","colour":"#b35a1f",
    "focus":[3,5,7],
-   "concern":"The beach draws visitors and shields the town, but the houses and the road have to stay safe. Hard walls can save assets and wreck the beach.",
-   "view":"The beach is what makes this town. Visitors come for the sand, the water, and the feel of a working coast. Locals need the road and the clifftop houses to stay safe. A sea wall protects what sits behind it, but it scours the beach in front -- and a beach without sand is not what anyone came here for.",
-   "goals":["Keep Main Beach wide and attractive for visitors and locals","Protect Cliff Road and the clifftop houses from the eroding cliff","Avoid turning the coast into a wall of concrete that drives visitors away","Maintain the town as somewhere people want to live and visit"]},
+   "concern":"I run the beach cafe. The wide beach is what brings people here, but the road and the houses have to stay safe too. It is a real balancing act.",
+   "view":"The beach is what makes this town. Visitors come for the sand, the water, and the feel of a working coast -- that is my livelihood and everyone else's here. Locals also need the road and the clifftop houses to stay safe. A sea wall protects what sits behind it, but it scours the beach in front, and a beach without sand is not what anyone came here for. Save the buildings, yes, but do not bury the coast in concrete.",
+   "goals":["Keep Main Beach wide and attractive for visitors and locals","Protect Cliff Road and the clifftop houses from the eroding cliff","Avoid turning the coast into a wall of concrete","Keep the town somewhere people want to live and visit"]},
 ]
 
 VOICE_LINES = {
@@ -97,6 +99,25 @@ VOICE_LINES = {
   "town":{"good":"The beach is still wide and inviting, the road and the homes are safe, and the coast looks like somewhere people want to come. That is good for business and good for the people who live here.",
           "mixed":"We are safe enough, but the beach has thinned or the coast is turning into concrete. Visitors notice, and a thin beach is a poorer draw than a wide one.",
           "bad":"We have lost beach, or buildings, or both. The shoreline is either washing away or buried in hard defences, and the visitors who keep this town alive are starting to go elsewhere."},
+}
+
+# Situational one-liners. A reaction is built from any that apply, then the overall mood line above.
+VOICE_DETAIL = {
+  "owners":{
+    "notConsulted":"And we still were not properly consulted before the work began.",
+    "consulted":"Thank you for consulting with us before you started -- that is how it should be done.",
+    "wallOnSite":"A hard wall has been put right on the river mouth, our significant site. That should never have happened.",
+    "starved":"The sand that keeps the estuary alive has been cut off up the coast, and the river mouth is suffering for it."},
+  "eco":{
+    "dunesStripped":"The dune plants have been cleared, so the dunes can no longer hold their sand.",
+    "estuaryStarved":"The estuary is being starved of the sand that longshore drift should bring it.",
+    "hardWalls":"Too much hard concrete -- every wall and groyne breaks the natural movement of sand a little more.",
+    "natural":"You have mostly let the coast keep working the way it naturally does, and the habitat shows it."},
+  "town":{
+    "assetLost":"And we lost a building to the sea -- exactly what we were afraid of.",
+    "beachWide":"The beach is wider than ever, and the visitors love it.",
+    "beachThin":"The beach in front has worn thin, and a thin beach keeps the crowds away.",
+    "tooManyWalls":"The whole front is turning into a wall of concrete, which is not the seaside people come for."},
 }
 
 # Reflection questions. lookFor = keywords for a coverage self-check (not a correctness check).

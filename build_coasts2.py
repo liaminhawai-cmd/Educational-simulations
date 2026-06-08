@@ -6,7 +6,7 @@ import data_coasts2 as DC
 
 OUT = "/mnt/user-data/outputs/Coasts-Interactive.html"
 DATA = {"META":DC.META,"SWELL":DC.SWELL,"SEG":DC.SEGMENTS,"STRAT":DC.STRATEGIES,
-        "HOUSING":DC.HOUSING,"VOICES":DC.VOICES,"VLINES":DC.VOICE_LINES,
+        "HOUSING":DC.HOUSING,"VOICES":DC.VOICES,"VLINES":DC.VOICE_LINES,"VDETAIL":DC.VOICE_DETAIL,
         "Q":DC.QUESTIONS,"C":DC.CONST}
 DATA_JSON = json.dumps(DATA, ensure_ascii=False)
 
@@ -29,15 +29,27 @@ svg{display:block;width:100%;height:100%}
 .legend span{display:inline-flex;align-items:center;gap:4px}.sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid #0002}
 /* ---- right column ---- */
 .rightcol{flex:1 1 0;min-width:340px;max-width:460px;min-height:0;display:flex;flex-direction:column;gap:10px}
-.chars{flex:0 0 auto;display:flex;flex-direction:column;gap:7px}
-.char-card{cursor:pointer;position:relative;background:var(--paper);border:1px solid var(--line);border-left:6px solid var(--neutral);border-radius:9px;padding:8px 11px;transition:box-shadow .15s,transform .1s}
+.chars{flex:0 0 auto;max-height:56%;overflow-y:auto;display:flex;flex-direction:column;gap:7px}
+.char-card{position:relative;background:var(--paper);border:1px solid var(--line);border-left:6px solid var(--neutral);border-radius:9px;padding:8px 11px;transition:box-shadow .15s}
 .char-card:hover{box-shadow:0 2px 8px #0001}
 .char-card.on{box-shadow:0 0 0 2px var(--accent)}
-.cc-top{display:flex;align-items:center;gap:8px}
-.cc-face{width:30px;height:30px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px}
-.cc-name{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:700;flex:1 1 auto}
-.cc-mood{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;border-radius:11px;padding:2px 9px}
+.cc-top{display:flex;align-items:center;gap:9px;cursor:pointer}
+.cc-face{width:32px;height:32px;flex:0 0 auto;display:flex}
+.cc-namewrap{flex:1 1 auto;display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.cc-name{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13.5px;font-weight:700}
+.cc-role{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.cc-flag{font-family:ui-sans-serif,system-ui,sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#7c3aed;background:#7c3aed18;border:1px solid #7c3aed55;border-radius:10px;padding:2px 6px;white-space:nowrap}
+.cc-mood{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;border-radius:11px;padding:2px 9px;white-space:nowrap}
 .cc-line{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--ink);margin:6px 0 0;line-height:1.4}
+.cc-more{margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
+.cc-more p{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;margin:0 0 6px;color:var(--ink)}
+.cc-more .gh{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin:2px 0 3px}
+.cc-more ul{margin:0;padding-left:17px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px}
+.cc-more li{margin-bottom:2px}
+.consult{margin-top:9px;background:#f5f0fb;border:1px solid #7c3aed44;border-radius:7px;padding:9px 11px}
+.consult p{margin:0 0 8px;font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;color:#5b2a9e}
+.consult.done{background:var(--okb);border-color:#3a8a4e55;color:var(--ok);font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:600}
+.consult.missed{background:var(--nob);border-color:#b1492f55;color:var(--no);font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px}
 /* ---- action panel ---- */
 .action{flex:1 1 auto;min-height:0;overflow-y:auto;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:12px}
 .budget-row{display:flex;align-items:center;gap:10px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12.5px;padding:7px 10px;background:#f7fafb;border:1px solid var(--line);border-radius:6px;margin:0 0 10px}
@@ -133,7 +145,7 @@ function initState(){
   return {seg:D.SEG.map(s=>({...s,energyBase:s.energy,sand:s.sand,dune:s.dune,retreat:0,lost:false})),
           g:geom(), meas:D.SEG.map(()=> "none"),
           apps:{clifftop:null,beachfront:null,setback:null}, houseLost:{}, stake:null,
-          spend:0, year:0};
+          consulted:false, spend:0, year:0};
 }
 function applyApprovals(st){
   // clifftop homes: built on the soft cliff at The Shoulder, at risk from cliff retreat
@@ -194,7 +206,9 @@ function voiceStates(st,o){
   const wallEstuary=[7,8].some(i=>st.meas[i]==="seawall"||st.meas[i]==="groyne"); // hard structure on the township / river-mouth
   const sb=o.startBeach;
   return{
-    owners:(wallEstuary||o.estuary<0.20)?"bad":(o.estuary>=0.30)?"good":"mixed",
+    // Traditional Owners: harm to the site = bad; otherwise being fully happy needs BOTH a healthy
+    // river mouth AND that they were consulted before the work (process matters, not just outcome).
+    owners:(wallEstuary||o.estuary<0.20)?"bad":(st.consulted&&o.estuary>=0.30)?"good":"mixed",
     eco:(o.dunes>=0.45&&hard<=1&&o.estuary>=0.25)?"good":(o.dunes<0.25||hard>=4||o.estuary<0.15)?"bad":"mixed",
     town:(o.beach>=0.70*sb&&o.assetsLost===0&&hard<=3)?"good":(o.beach<0.50*sb||o.assetsLost>0)?"bad":"mixed",
   };
@@ -287,14 +301,15 @@ function drawSVG(st, sel, stake){
   }
   // ===== assets (drawn landward) =====
   st.seg.forEach((s,i)=>{ if(!s.asset) return;
-    const cx=pts[i][0], gy=pts[i][1]+42, lost=s.lost, opa=lost?0.4:1;
+    const bx0=D.SEG[i].bx, by0=D.SEG[i].by;                 // assets stay at a fixed spot; the coastline erodes toward them
+    const cx=bx0, gy=by0+42, lost=s.lost, opa=lost?0.4:1;
     if(s.asset==="road"){
-      const tg=st.g[i].t, hw=44, ly=pts[i][1]+20;
+      const tg=st.g[i].t, hw=44, ly=by0+20;
       const ax=cx-tg[0]*hw, ay=ly-tg[1]*hw, bxr=cx+tg[0]*hw, byr=ly+tg[1]*hw;
       o+=`<line x1="${fx(ax)}" y1="${fx(ay)}" x2="${fx(bxr)}" y2="${fx(byr)}" stroke="${lost?'#b3a99a':'#6b6258'}" stroke-width="9" stroke-linecap="round" opacity="${opa}"/>`;
       o+=`<line x1="${fx(ax)}" y1="${fx(ay)}" x2="${fx(bxr)}" y2="${fx(byr)}" stroke="#f2e9d0" stroke-width="1.4" stroke-dasharray="6 6" opacity="${opa}"/>`;
       o+=alabel(cx, gy, lost?"Cliff Road (lost)":"Cliff Road", lost?'#b1492f':'#3a3226');
-      if(lost) o+=`<text x="${fx(cx)}" y="${fx(pts[i][1]+4)}" font-size="14" text-anchor="middle" fill="#b1492f">&#10005;</text>`;
+      if(lost) o+=`<text x="${fx(cx)}" y="${fx(by0+8)}" font-size="14" text-anchor="middle" fill="#b1492f">&#10005;</text>`;
     }
     if(s.asset==="houses"){
       const label=i===1?(lost?"Clifftop homes (lost!)":"Clifftop homes"):(lost?"Clifftop houses (lost)":"Clifftop houses");
@@ -303,7 +318,7 @@ function drawSVG(st, sel, stake){
       if(lost) o+=`<text x="${fx(cx)}" y="${fx(gy-26)}" font-size="15" text-anchor="middle" fill="#b1492f">&#10005;</text>`;
     }
     if(s.asset==="town"){
-      const n=st.g[i].n, jx=pts[i][0], jy=pts[i][1];
+      const n=st.g[i].n, jx=bx0, jy=by0;
       const exj=jx+n[0]*48, eyj=jy+n[1]*48;
       o+=`<line x1="${fx(jx)}" y1="${fx(jy)}" x2="${fx(exj)}" y2="${fx(eyj)}" stroke="#8a6d4b" stroke-width="4"/>`;
       for(let p=1;p<=3;p++){const px=jx+n[0]*12*p, py=jy+n[1]*12*p;
@@ -401,8 +416,8 @@ function drawSVG(st, sel, stake){
 
 /* ===== UI ===== */
 const TOTAL_DECADES=3;
-let st, sel=null, selHouse=null, decadesRun=0, reflectOpen=false;
-function redraw(){ $("map").innerHTML=drawSVG(st, sel, st.stake); }
+let st, sel=null, selHouse=null, decadesRun=0, reflectOpen=false, animating=false;
+function redraw(disp){ $("map").innerHTML=drawSVG(disp||st, sel, st.stake); }
 
 function availBudget(){
   return C.BUDGET + D.HOUSING.reduce((a,h)=>a+(houseOn(st,h.id)?(h.bonus||0):0),0);
@@ -416,35 +431,87 @@ function budgetRowHTML(){
 }
 
 /* ---- always-visible adviser cards (right column, top) ---- */
-function faceFor(id){return id==="owners"?"\u{1F3DE}\u{FE0F}":id==="eco"?"\u{1F33F}":"\u{1F3D6}\u{FE0F}";}
+function avatarSVG(key,col){
+  const bg=col+"22";
+  if(key==="country"){   // Traditional Owners: Country / river-mouth emblem, not a fabricated portrait
+    return `<svg viewBox="0 0 34 34" width="32" height="32"><circle cx="17" cy="17" r="17" fill="${bg}"/>`+
+      `<circle cx="24.5" cy="9.5" r="3.4" fill="#e7a33e"/>`+
+      `<path d="M2 14 q8 -6 15 0 t15 0" fill="none" stroke="#b9863f" stroke-width="2.2"/>`+
+      `<path d="M2 22 q8 5 15 0 t15 0 V34 H2 Z" fill="#3d7fb8" opacity="0.9"/></svg>`;
+  }
+  const skin=key==="eco"?"#e7b48f":"#edc6a4", hair=key==="eco"?"#332016":"#5a3a1c";
+  return `<svg viewBox="0 0 34 34" width="32" height="32"><circle cx="17" cy="17" r="17" fill="${bg}"/>`+
+    `<path d="M4 34 q13 -13 26 0 Z" fill="${col}"/>`+
+    `<circle cx="17" cy="15" r="7.4" fill="${skin}"/>`+
+    `<path d="M9.6 13 q0.4 -9 7.4 -9 t7.4 9 q-3 -4.5 -7.4 -4.5 t-7.4 4.5" fill="${hair}"/></svg>`;
+}
 function moodBits(m){
   if(m==="good") return ["happy","var(--ok)"];
   if(m==="bad") return ["unhappy","var(--no)"];
   if(m==="mixed") return ["so-so","var(--amber)"];
-  return ["waiting","var(--neutral)"];
+  return ["listening","var(--neutral)"];
 }
+function reactionLine(id,o,vs){
+  const m=st.meas, sb=o.startBeach, hard=m.filter(x=>x==="seawall"||x==="groyne").length;
+  const wallSite=[7,8].some(i=>m[i]==="seawall"||m[i]==="groyne"), DT=D.VDETAIL[id];
+  let bits=[];
+  if(id==="town"){
+    if(o.assetsLost>0) bits.push(DT.assetLost);
+    else if(o.beach>=0.9*sb) bits.push(DT.beachWide);
+    else if(o.beach<0.6*sb) bits.push(DT.beachThin);
+    if(hard>=4) bits.push(DT.tooManyWalls);
+  } else if(id==="eco"){
+    if(o.dunes<0.45) bits.push(DT.dunesStripped);
+    if(o.estuary<0.25) bits.push(DT.estuaryStarved);
+    if(hard>=2) bits.push(DT.hardWalls);
+    if(!bits.length) bits.push(DT.natural);
+  } else if(id==="owners"){
+    if(wallSite) bits.push(DT.wallOnSite);
+    else if(o.estuary<0.20) bits.push(DT.starved);
+    bits.push(st.consulted?DT.consulted:DT.notConsulted);
+  }
+  bits.push(D.VLINES[id][vs[id]]);
+  return bits.join(" ");
+}
+function consultControlHTML(){
+  if(st.consulted) return `<div class="consult done">&#10003; ${D.META.consultDone}</div>`;
+  if(decadesRun>0) return `<div class="consult missed">The years have begun without consultation. In real life, consultation comes before any work -- this was a chance missed.</div>`;
+  return `<div class="consult"><p>${D.META.consultPrompt}</p><button class="hbtn" onclick="consult()">Begin consultation</button></div>`;
+}
+function consult(){ if(animating||decadesRun>0||st.consulted) return; st.consulted=true; renderChars(); updateHint(); }
 function renderChars(){
   const html=D.VOICES.filter(v=>v.id!=="engineer").map(v=>{
     const mood=st._vs?st._vs[v.id]:null;
     const [word,col]=moodBits(mood);
-    const line=mood?D.VLINES[v.id][mood]:v.concern;
     const on=st.stake===v.id;
-    return `<div class="char-card${on?' on':''}" style="border-left-color:${col}" onclick="setStake('${v.id}')">
-      <div class="cc-top"><span class="cc-face" style="background:${v.colour}22;color:${v.colour}">${faceFor(v.id)}</span>
-        <span class="cc-name">${v.name}</span>
-        <span class="cc-mood" style="background:${col}">${word}</span></div>
-      <p class="cc-line">${line}</p></div>`;
+    const line = mood ? reactionLine(v.id,st._o,st._vs) : v.concern;
+    let extra="";
+    if(on){
+      extra=`<div class="cc-more"><p>${v.view}</p>`;
+      if(v.goals&&v.goals.length) extra+=`<div class="gh">What they want</div><ul>${v.goals.map(g=>`<li>${g}</li>`).join("")}</ul>`;
+      if(v.id==="owners") extra+=consultControlHTML();
+      extra+=`</div>`;
+    }
+    const flag=v.id==="owners"&&!st.consulted&&decadesRun===0?`<span class="cc-flag">consult first</span>`:"";
+    return `<div class="char-card${on?' on':''}" style="border-left-color:${col}">
+      <div class="cc-top" onclick="setStake('${v.id}')">
+        <span class="cc-face">${avatarSVG(v.avatar,v.colour)}</span>
+        <span class="cc-namewrap"><span class="cc-name">${v.person||v.name}</span><span class="cc-role">${v.name}</span></span>
+        ${flag}<span class="cc-mood" style="background:${col}">${word}</span></div>
+      <p class="cc-line">${line}</p>${extra}</div>`;
   }).join("");
   $("chars").innerHTML=html;
 }
-function setStake(id){ st.stake = st.stake===id? null : id; renderChars(); updateHint(); redraw(); }
+function setStake(id){ if(animating) return; st.stake = st.stake===id? null : id; renderChars(); updateHint(); redraw(); }
 function updateHint(){
   const v=st.stake&&D.VOICES.find(x=>x.id===st.stake);
   $("hint").innerHTML = v
-    ? `<span style="color:${v.colour}">&#9679;</span> <b>${v.name}:</b> ${v.concern}`
+    ? `<span style="color:${v.colour}">&#9679;</span> <b>${v.person||v.name}:</b> ${v.concern}`
     : (decadesRun>=TOTAL_DECADES
         ? "Thirty years done. See how each adviser feels, then open Reflect like a geographer below."
-        : "Tap a spot on the coast to inspect and protect it. Tap an adviser card to see what they care about.");
+        : (decadesRun===0&&!st.consulted
+            ? "Start by tapping the Traditional Owners card to consult. Then inspect the coast and choose how to protect it."
+            : "Tap a spot on the coast to inspect and protect it. Tap an adviser to hear more from them."));
 }
 
 /* ---- engineer's plain-language insight for a clicked spot ---- */
@@ -519,7 +586,7 @@ function runHTML(){
   const done=decadesRun>=TOTAL_DECADES;
   const dots=Array.from({length:TOTAL_DECADES},(_,k)=>`<span class="dot${k<decadesRun?' done':''}"></span>`).join("");
   let s=`<div class="runbar"><div class="decades">${dots}<span class="dlabel">${done?"30 years done":`Decade ${decadesRun+1} of ${TOTAL_DECADES}`}</span></div>`;
-  if(!done) s+=`<button class="run" onclick="runDecade()">Run 10 years &#9654;</button>`;
+  if(!done) s+= animating ? `<button class="run" disabled>Running...</button>` : `<button class="run" onclick="runDecade()">Run 10 years &#9654;</button>`;
   s+=`</div>`;
   if(decadesRun===0) s+=`<p class="note">Set up your plan, then run the first ten years. New housing locks in after that.</p>`;
   else if(!done) s+=`<p class="note">Adjust your measures, then run the next ten years. Housing is locked in now.</p>`;
@@ -555,14 +622,16 @@ function bindReflect(){
 }
 
 /* ---- interactions ---- */
-function clickCoast(i){ sel=i; selHouse=null; renderAction(); redraw(); }
+function clickCoast(i){ if(animating) return; sel=i; selHouse=null; renderAction(); redraw(); }
 function setMeasure(k){
+  if(animating) return;
   const test=[...st.meas]; test[sel]=k;
   if(computeSpend(test)>availBudget()){ const msg=$("budgetMsg"); if(msg) msg.textContent="Not enough money. Take out or change another measure first."; return; }
   st.meas[sel]=k; st.spend=computeSpend();
   renderAction(); redraw();
 }
 function toggleHouse(id){
+  if(animating) return;
   if(decadesRun>0){ selHouse=id; sel=null; renderAction(); return; }   // locked: just show it
   if(houseOn(st,id)){ st.apps[id]=null; }
   else{
@@ -572,15 +641,35 @@ function toggleHouse(id){
   selHouse=id; sel=null; renderAction(); redraw();
 }
 
-/* ---- run logic: three ten-year decades ---- */
+/* ---- run logic: three ten-year decades, played out year by year so the sand visibly drifts ---- */
 function mkRng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+function snap(){return {sand:st.seg.map(s=>s.sand), ret:st.seg.map(s=>s.retreat), lost:st.seg.map(s=>s.lost)};}
+function dispState(A,B,f){
+  return {...st, seg: st.seg.map((s,i)=>({...s,
+    sand:A.sand[i]+(B.sand[i]-A.sand[i])*f,
+    retreat:A.ret[i]+(B.ret[i]-A.ret[i])*f,
+    lost:B.lost[i]}))};
+}
+function playSnaps(snaps,done){
+  if(typeof requestAnimationFrame==="undefined"){ animating=false; done&&done(); return; }
+  animating=true;
+  const perYear=170, total=(snaps.length-1)*perYear, t0=performance.now();
+  (function frame(now){
+    const k=Math.min(1,(now-t0)/total)*(snaps.length-1);
+    const a=Math.min(Math.floor(k),snaps.length-2), f=k-a;
+    redraw(dispState(snaps[a],snaps[a+1],f));
+    if((now-t0)<total) requestAnimationFrame(frame);
+    else { animating=false; redraw(); done&&done(); }
+  })(t0);
+}
 function runDecade(){
-  if(decadesRun>=TOTAL_DECADES) return;
+  if(animating||decadesRun>=TOTAL_DECADES) return;
   if(decadesRun===0) Sim.applyApprovals(st);
-  Sim.run(st,10,mkRng(4242+st.year));
+  const rng=mkRng(4242+st.year), snaps=[snap()];
+  for(let y=0;y<10;y++){ Sim.stepYear(st,rng()); snaps.push(snap()); }
   decadesRun++;
   const o=Sim.outcome(st), vs=Sim.voiceStates(st,o);
-  st._vs=vs;
+  st._o=o; st._vs=vs;
   let h="";
   if(o.housesLost>0){ h+=`<div class="bigtrouble">Big trouble: ${o.housesLost===1?"a set of new homes has":"new homes have"} been lost to the sea. Building too close to the water has cost the council dearly.</div>`; }
   h+=`<div class="stamp">After ${st.year} years</div>`;
@@ -588,7 +677,10 @@ function runDecade(){
   h+=`<p class="note" style="margin-top:6px">See how your three advisers feel in the cards above.</p>`;
   st._reviewHTML=h;
   sel=null; selHouse=null;
-  renderChars(); renderAction(); updateHint(); redraw();
+  animating=true;
+  $("hint").innerHTML="The years are passing -- watch the sand drift and the cliffs wear back...";
+  renderAction();
+  playSnaps(snaps, ()=>{ renderChars(); renderAction(); updateHint(); });
 }
 
 function checkA(n){
