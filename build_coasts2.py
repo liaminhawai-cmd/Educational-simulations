@@ -25,8 +25,10 @@ header .sub{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10.5px;colo
 .hint{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;color:var(--ink);min-height:17px;flex:0 0 auto}
 .mapwrap{flex:1 1 auto;min-height:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#bcd9e6;display:flex}
 svg{display:block;width:100%;height:100%}
-.legend{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:5px 13px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:11px;color:var(--muted)}
-.legend span{display:inline-flex;align-items:center;gap:4px}.sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid #0002}
+.legend-box{flex:0 0 auto;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:7px 11px 7px}
+.legend-head{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin-bottom:5px}
+.legend{display:flex;flex-wrap:wrap;gap:5px 15px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--ink)}
+.legend span{display:inline-flex;align-items:center;gap:5px}.sw{width:14px;height:14px;border-radius:3px;display:inline-block;border:1px solid #0003}
 /* ---- right column ---- */
 .rightcol{flex:1 1 0;min-width:340px;max-width:460px;min-height:0;display:flex;flex-direction:column;gap:10px}
 .chars{flex:0 0 auto;max-height:56%;overflow-y:auto;display:flex;flex-direction:column;gap:7px}
@@ -40,10 +42,17 @@ svg{display:block;width:100%;height:100%}
 .cc-role{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
 .cc-mood{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;border-radius:11px;padding:2px 9px;white-space:nowrap}
 .cc-mood{min-width:46px;text-align:center}
-.cc-bar{height:6px;background:#ece9f0;border-radius:4px;margin:7px 0 0;overflow:hidden}
+.cc-shortrole{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10px;color:var(--muted);font-style:italic;margin-top:1px;line-height:1.2}
+.cc-bar{height:6px;background:#ece9f0;border-radius:4px;margin:7px 0 4px;overflow:hidden}
 .cc-bar span{display:block;height:100%;border-radius:4px;transition:width .45s}
+.cc-consult{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--accent);background:var(--paper);color:var(--accent);border-radius:14px;padding:4px 13px;margin-top:5px;display:inline-block}
+.cc-consult.open{background:var(--accent);color:#fff}
 .cc-line{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--ink);margin:6px 0 0;line-height:1.4}
 .cc-more{margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
+#stip{position:fixed;z-index:999;background:var(--paper);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 20px #0003;padding:10px 13px;max-width:270px;pointer-events:none;display:none}
+.stip-head{font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:800;color:var(--ink);margin-bottom:7px}
+.stip-adv{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:var(--ok);margin:7px 0 4px;line-height:1.4}
+.stip-dis{font-family:ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:var(--no);margin:0;line-height:1.4}
 .cc-more p{font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;margin:0 0 6px;color:var(--ink)}
 .cc-more .gh{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin:2px 0 3px}
 .cc-more ul{margin:0;padding-left:17px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px}
@@ -411,7 +420,18 @@ function drawSVG(st, sel, stake){
     o+=`<rect x="${fx(mx-W/2)}" y="${fx(my-8)}" width="${W}" height="${H}" rx="7" fill="#000" opacity="0" style="cursor:pointer" onclick="toggleHouse('${h.id}')"/>`;
   });
   // measure badges + click hotspots on coast nodes
+  const _nk={headland:'#3d6a8a',cliff:'#8b3a1f',beach:'#3a566b',dune:'#237a3b',estuary:'#7c3aed',spit:'#3a566b',town:'#b35a1f'};
   st.seg.forEach((s,i)=>{const x=pts[i][0], y=pts[i][1];
+    // visible interaction ring: shows when no measure set and not selected, so students see where to click
+    if(st.meas[i]==="none"&&sel!==i){
+      const nc=_nk[s.kind]||'#3a566b';
+      o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="19" fill="${nc}" opacity="0.13" stroke="${nc}" stroke-width="2" stroke-dasharray="5 3" pointer-events="none"/>`;
+      o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="${nc}" opacity="0.42" pointer-events="none"/>`;
+    }
+    // name tags for nodes without a pre-existing label
+    if(i===1) o+=`<text x="${x.toFixed(1)}" y="${(y-25).toFixed(1)}" font-size="9.5" text-anchor="middle" font-weight="700" fill="#8b3a1f" pointer-events="none">The Shoulder</text>`;
+    if(i===4) o+=`<text x="${(x+24).toFixed(1)}" y="${(y-22).toFixed(1)}" font-size="9.5" text-anchor="start" font-weight="700" fill="#3d6a8a" pointer-events="none">The Steps</text>`;
+    if(i===10) o+=`<text x="${x.toFixed(1)}" y="${(y-25).toFixed(1)}" font-size="9.5" text-anchor="middle" font-weight="700" fill="#3a566b" pointer-events="none">Far Beach</text>`;
     if(st.meas[i]!=="none"){o+=`<circle cx="${x.toFixed(1)}" cy="${(y-16).toFixed(1)}" r="11" fill="#cf8336" stroke="#fff" stroke-width="2"/>`+
        `<text x="${x.toFixed(1)}" y="${(y-12).toFixed(1)}" font-size="12" text-anchor="middle" fill="#fff" font-weight="700">${D.STRAT[st.meas[i]].letter}</text>`;}
     if(sel===i) o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="23" fill="#cf8336" opacity="0.14"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="23" fill="none" stroke="#cf8336" stroke-width="2.5"/>`;
@@ -497,20 +517,121 @@ function budgetRowHTML(){
   return `<div class="budget-row"><span><strong>Money:</strong> ${rem} of ${avail} left</span><div class="budget-bar-wrap"><div class="budget-bar-fill" style="width:${pct}%;background:${col}"></div></div></div>`;
 }
 
+/* ===== STRATEGY TOOLTIP DIAGRAMS ===== */
+const _STSVG={
+seawall:`<svg viewBox="0 0 192 80" width="192" height="80" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">
+<rect width="192" height="80" fill="#bcd9e6"/>
+<rect x="143" y="22" width="49" height="58" fill="#d7cfb8"/>
+<rect x="108" y="48" width="35" height="32" fill="#f2c543" opacity="0.7"/>
+<rect x="0" y="62" width="108" height="18" fill="#7aafcc" opacity="0.45"/>
+<rect x="139" y="18" width="10" height="62" rx="2" fill="#808080"/>
+<polygon points="132,78 141,78 141,71 150,78" fill="#909090"/>
+<path d="M4 28 q16-12 32 0 t32 0 t26 0" fill="none" stroke="#1d5f8a" stroke-width="2.2"/>
+<path d="M4 43 q16-9 32 0 t32 0 t26 0" fill="none" stroke="#1d5f8a" stroke-width="1.3" opacity="0.6"/>
+<polygon points="124,34 133,37 124,41" fill="#1d5f8a"/>
+<line x1="92" y1="37" x2="123" y2="37" stroke="#1d5f8a" stroke-width="1.8"/>
+<text x="4" y="14" font-size="9" fill="#1a4060" font-weight="700">Sea</text>
+<text x="144" y="14" font-size="9" fill="#555" font-weight="700">Wall</text>
+<text x="145" y="66" font-size="8.5" fill="#5a4a2a">land</text>
+<text x="145" y="75" font-size="8.5" fill="#5a4a2a">protected</text>
+<text x="110" y="71" font-size="8" fill="#9a6a00">beach</text>
+<text x="108" y="79" font-size="8" fill="#9a6a00">wears away</text>
+</svg>`,
+groyne:`<svg viewBox="0 0 192 80" width="192" height="80" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">
+<rect width="192" height="80" fill="#bcd9e6"/>
+<rect x="0" y="50" width="192" height="30" fill="#f2c543"/>
+<rect x="0" y="44" width="192" height="6" fill="#e0aa20"/>
+<rect x="58" y="12" width="8" height="40" rx="2" fill="#7a6448"/>
+<rect x="130" y="12" width="8" height="40" rx="2" fill="#7a6448"/>
+<path d="M2 48 q28-10 56 0" fill="#f5d050" stroke="none"/>
+<path d="M66 48 q30 8 64 0" fill="#c0a428" stroke="none"/>
+<path d="M138 48 q28-8 54 0" fill="#f5d050" stroke="none"/>
+<line x1="5" y1="30" x2="187" y2="30" stroke="#1d5f8a" stroke-width="1.3" stroke-dasharray="6 4" opacity="0.7"/>
+<polygon points="182,26 191,30 182,34" fill="#1d5f8a" opacity="0.7"/>
+<text x="5" y="22" font-size="8.5" fill="#1a4060">longshore drift --&gt;</text>
+<text x="10" y="42" font-size="8" fill="#8b6a00">sand builds</text>
+<text x="74" y="42" font-size="8" fill="#7a5a18">starved</text>
+<text x="140" y="42" font-size="8" fill="#8b6a00">builds</text>
+<text x="50" y="68" font-size="8.5" fill="#5a4a2a" font-weight="700">groyne</text>
+<text x="120" y="68" font-size="8.5" fill="#5a4a2a" font-weight="700">groyne</text>
+</svg>`,
+nourish:`<svg viewBox="0 0 192 80" width="192" height="80" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">
+<rect width="192" height="80" fill="#bcd9e6"/>
+<rect x="132" y="14" width="60" height="66" fill="#d7cfb8"/>
+<path d="M0 52 Q42 44 78 48 Q102 52 132 44 L132 80 L0 80 Z" fill="#f2c543"/>
+<path d="M0 60 Q42 53 78 57 Q102 60 132 53" fill="none" stroke="#6a5a00" stroke-width="1.3" stroke-dasharray="5 4" opacity="0.7"/>
+<path d="M4 26 q18-12 36 0 t36 0 t36 0" fill="none" stroke="#1d5f8a" stroke-width="2.2"/>
+<path d="M4 39 q18-9 36 0 t36 0 t36 0" fill="none" stroke="#1d5f8a" stroke-width="1.3" opacity="0.6"/>
+<text x="4" y="14" font-size="9" fill="#1a4060" font-weight="700">Sea</text>
+<text x="136" y="32" font-size="8.5" fill="#5a4a2a">land</text>
+<text x="4" y="70" font-size="8.5" fill="#9a7000">wide beach added (washes away over time)</text>
+<text x="6" y="58" font-size="7.5" fill="#6a5a00" opacity="0.8">old shore - - -</text>
+</svg>`,
+retreat:`<svg viewBox="0 0 192 80" width="192" height="80" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">
+<rect width="192" height="80" fill="#bcd9e6"/>
+<rect x="150" y="12" width="42" height="68" fill="#d7cfb8"/>
+<path d="M0 54 Q52 44 92 50 Q112 56 150 46 L150 80 L0 80 Z" fill="#f2c543"/>
+<circle cx="6" cy="66" r="4" fill="#7a9b5e"/><circle cx="16" cy="68" r="5" fill="#7a9b5e"/><circle cx="28" cy="65" r="4" fill="#7a9b5e"/>
+<path d="M0 38 Q52 28 92 34 Q112 38 150 30" fill="none" stroke="#3a2f22" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.65"/>
+<polygon points="98,8 108,8 103,2" fill="#c46a4a"/>
+<rect x="95" y="8" width="18" height="14" fill="#c46a4a"/>
+<polygon points="126,16 136,16 131,10" fill="#c46a4a" opacity="0.35"/>
+<rect x="123" y="16" width="18" height="14" fill="#c46a4a" opacity="0.35"/>
+<line x1="113" y1="15" x2="122" y2="15" stroke="#444" stroke-width="1.5"/>
+<polygon points="120,12 128,15 120,18" fill="#444"/>
+<path d="M4 28 q18-11 36 0 t36 0" fill="none" stroke="#1d5f8a" stroke-width="2.2"/>
+<text x="4" y="14" font-size="9" fill="#1a4060" font-weight="700">Sea</text>
+<text x="4" y="38" font-size="7.5" fill="#3a2f22" opacity="0.72">old coast - - -</text>
+<text x="4" y="70" font-size="8" fill="#3a566b">new beach + dunes grow</text>
+<text x="154" y="36" font-size="8" fill="#5a4a2a">building</text>
+<text x="154" y="44" font-size="8" fill="#5a4a2a">moved back</text>
+</svg>`
+};
+function _buildStratTips(){
+  const t={};
+  ['seawall','groyne','nourish','retreat'].forEach(k=>{
+    const s=D.STRAT[k];
+    t[k]=`<div class="stip-head">${s.name}</div>${_STSVG[k]}<p class="stip-adv">+ ${s.adv}</p><p class="stip-dis">&#8722; ${s.dis}</p>`;
+  });
+  return t;
+}
+const _STIPS=_buildStratTips();
+let _stTm=null;
+function showStratTip(evt,k){
+  if(k==="none") return;
+  clearTimeout(_stTm);
+  const tip=document.getElementById("stip"); if(!tip) return;
+  tip.innerHTML=_STIPS[k]||""; tip.style.display="block";
+  const r=evt.currentTarget.getBoundingClientRect();
+  const tw=tip.offsetWidth||250;
+  let lx=r.left, ty=r.bottom+5;
+  if(lx+tw>window.innerWidth-8) lx=window.innerWidth-tw-8;
+  if(ty+tip.offsetHeight>window.innerHeight-8) ty=r.top-tip.offsetHeight-5;
+  tip.style.left=Math.max(4,lx)+"px"; tip.style.top=Math.max(4,ty)+"px";
+}
+function hideStratTip(){ _stTm=setTimeout(()=>{const t=document.getElementById("stip");if(t)t.style.display="none";},80); }
+
 /* ---- always-visible adviser cards (right column, top) ---- */
-function avatarSVG(key,col){
+function avatarSVG(key,col,mood){
   const bg=col+"22";
   if(key==="country"){   // Traditional Owners: Country / river-mouth emblem, not a fabricated portrait
+    const sunR=mood==="good"?4.8:mood==="bad"?2.2:3.4;
+    const sunCol=mood==="good"?"#f5c530":mood==="bad"?"#a08050":"#e7a33e";
     return `<svg viewBox="0 0 34 34" width="32" height="32"><circle cx="17" cy="17" r="17" fill="${bg}"/>`+
-      `<circle cx="24.5" cy="9.5" r="3.4" fill="#e7a33e"/>`+
+      `<circle cx="24.5" cy="9.5" r="${sunR}" fill="${sunCol}"/>`+
       `<path d="M2 14 q8 -6 15 0 t15 0" fill="none" stroke="#b9863f" stroke-width="2.2"/>`+
       `<path d="M2 22 q8 5 15 0 t15 0 V34 H2 Z" fill="#3d7fb8" opacity="0.9"/></svg>`;
   }
   const skin=key==="eco"?"#e7b48f":"#edc6a4", hair=key==="eco"?"#332016":"#5a3a1c";
+  const mouth=mood==="good"?`<path d="M13.5 21 q3.5 3.5 7 0" fill="none" stroke="#7a4a2a" stroke-width="1.3" stroke-linecap="round"/>`
+             :mood==="bad"?`<path d="M13.5 23 q3.5 -3 7 0" fill="none" stroke="#7a4a2a" stroke-width="1.3" stroke-linecap="round"/>`
+             :mood==="mixed"?`<path d="M13.5 22 h7" stroke="#7a4a2a" stroke-width="1.2" stroke-linecap="round" fill="none"/>`
+             :"";
   return `<svg viewBox="0 0 34 34" width="32" height="32"><circle cx="17" cy="17" r="17" fill="${bg}"/>`+
     `<path d="M4 34 q13 -13 26 0 Z" fill="${col}"/>`+
     `<circle cx="17" cy="15" r="7.4" fill="${skin}"/>`+
-    `<path d="M9.6 13 q0.4 -9 7.4 -9 t7.4 9 q-3 -4.5 -7.4 -4.5 t-7.4 4.5" fill="${hair}"/></svg>`;
+    `<path d="M9.6 13 q0.4 -9 7.4 -9 t7.4 9 q-3 -4.5 -7.4 -4.5 t-7.4 4.5" fill="${hair}"/>`+
+    mouth+`</svg>`;
 }
 function moodBits(m){
   if(m==="good") return ["happy","var(--ok)"];
@@ -550,21 +671,26 @@ function renderChars(){
     const score=st._sc?st._sc[v.id]:null;
     const [word,col]=moodBits(mood);
     const on=st.stake===v.id;
-    const line = mood ? reactionLine(v.id,st._o,st._vs) : v.concern;
-    const pill = score==null ? word : `${score}/10`;
-    const bar = score==null ? "" : `<div class="cc-bar"><span style="width:${score*10}%;background:${col}"></span></div>`;
-    let extra="";
+    const ran=mood!==null;
+    const pill=score!=null?`${score}/10`:``;
+    const bar=score!=null?`<div class="cc-bar"><span style="width:${score*10}%;background:${col}"></span></div>`:``;
+    const sr=v.shortRole?`<span class="cc-shortrole">${v.shortRole}</span>`:``;
+    let body=``;
+    if(!ran) body+=`<p class="cc-line">${v.concern}</p>`;
+    else body+=bar;
+    body+=`<button class="cc-consult${on?" open":""}" onclick="setStake('${v.id}')">${on?`&#9660;&nbsp;Close`:`&#9658;&nbsp;Consult`}</button>`;
     if(on){
-      extra=`<div class="cc-more"><p>${v.view}</p>`;
-      if(v.goals&&v.goals.length) extra+=`<div class="gh">What they want</div><ul>${v.goals.map(g=>`<li>${g}</li>`).join("")}</ul>`;
-      extra+=`</div>`;
+      body+=`<div class="cc-more">`;
+      body+=`<p>${ran?reactionLine(v.id,st._o,st._vs):v.view}</p>`;
+      if(v.goals&&v.goals.length) body+=`<div class="gh">What they want</div><ul>${v.goals.map(g=>`<li>${g}</li>`).join("")}</ul>`;
+      body+=`</div>`;
     }
-    return `<div class="char-card${on?' on':''}" style="border-left-color:${col}">
+    return `<div class="char-card${on?" on":""}" style="border-left-color:${col}">
       <div class="cc-top" onclick="setStake('${v.id}')">
-        <span class="cc-face">${avatarSVG(v.avatar,v.colour)}</span>
-        <span class="cc-namewrap"><span class="cc-name">${v.person||v.name}</span><span class="cc-role">${v.name}</span></span>
-        <span class="cc-mood" style="background:${col}" title="${word}">${pill}</span></div>
-      ${bar}<p class="cc-line">${line}</p>${extra}</div>`;
+        <span class="cc-face">${avatarSVG(v.avatar,v.colour,mood)}</span>
+        <span class="cc-namewrap"><span class="cc-name">${v.person||v.name}</span><span class="cc-role">${v.name}</span>${sr}</span>
+        ${pill?`<span class="cc-mood" style="background:${col}" title="${word}">${pill}</span>`:``}
+      </div>${body}</div>`;
   }).join("");
   $("chars").innerHTML=html;
 }
@@ -616,7 +742,7 @@ function spotHTML(i){
     const lock=(built&&k!==st.meas[i])||(k==="nourish"&&noNourish)?" locked":"";
     const cost=D.STRAT[k].cost>0?` (${D.STRAT[k].cost})`:"";
     const click=(built&&k!==st.meas[i])||(k==="nourish"&&noNourish)?'':`setMeasure('${k}')`;
-    return `<button class="sbtn${on}${lock}" onclick="${click}">${D.STRAT[k].name}${cost}</button>`;
+    return `<button class="sbtn${on}${lock}" onclick="${click}" onmouseenter="showStratTip(event,'${k}')" onmouseleave="hideStratTip()">${D.STRAT[k].name}${cost}</button>`;
   }).join("");
   const cur=D.STRAT[st.meas[i]];
   return `<div class="spot">
@@ -794,14 +920,18 @@ HTML = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
   <div class="mapcol">
     <div id="hint" class="hint"></div>
     <div class="mapwrap"><div id="map" style="width:100%;height:100%"></div></div>
-    <div class="legend">
-      <span><i class="sw" style="background:#bcd9e6"></i>sea (arrows = waves)</span>
-      <span><i class="sw" style="background:#f2c543"></i>beach now</span>
-      <span><i class="sw" style="background:#7a9b5e"></i>dunes</span>
-      <span><i class="sw" style="background:#d7cfb8"></i>land / cliff</span>
-      <span><i class="sw" style="background:#3d7fb8"></i>river mouth</span>
-      <span><i class="sw" style="background:#cf8336"></i>your measure</span>
-      <span>&#8226;&#8226;&#8226; old coastline</span>
+    <div class="legend-box">
+      <div class="legend-head">Map key</div>
+      <div class="legend">
+        <span><i class="sw" style="background:#bcd9e6"></i>sea</span>
+        <span><i class="sw" style="background:#f2c543"></i>beach sand</span>
+        <span><i class="sw" style="background:#7a9b5e"></i>dunes</span>
+        <span><i class="sw" style="background:#d7cfb8"></i>land / cliff</span>
+        <span><i class="sw" style="background:#3d7fb8"></i>river mouth</span>
+        <span><i class="sw" style="background:#cf8336"></i>your measure</span>
+        <span>&#8226;&#8226;&#8226; old coastline</span>
+        <span>&#9675; - - tap a coast node to manage it</span>
+      </div>
     </div>
   </div>
   <div class="rightcol">
@@ -809,6 +939,7 @@ HTML = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
     <div id="action" class="action"></div>
   </div>
 </div>
+<div id="stip"></div>
 <script>{JS.replace('__DATA__', DATA_JSON)}</script></body></html>"""
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
